@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Dokku
-        uses: dokku/github-action
+        uses: dokku/github-action@v1.0.1
         with:
           git_remote_url: ssh://dokku@78.46.204.127/taskeroo
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
