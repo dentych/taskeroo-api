@@ -114,6 +114,7 @@ func Run() {
 				"title": "Login",
 				"error": "De to password matcher ikke",
 			})
+			return
 		}
 
 		if email == "" {
