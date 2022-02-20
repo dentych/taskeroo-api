@@ -14,6 +14,10 @@
              class="border rounded p-1 mt-1"
              required>
 
+      {{ if .error }}
+      <p class="mt-4 bg-red-200 border border-red-400 rounded py-1 px-2 text-red-600 text-center">{{ .error }}</p>
+      {{ end }}
+
       <button class="bg-pink-300 px-1 py-2 rounded mt-8">Opret bruger</button>
     </form>
   </div>
