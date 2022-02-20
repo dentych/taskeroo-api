@@ -25,7 +25,7 @@ func (r *SessionRepo) Create(session Session) error {
 
 func (r *SessionRepo) Get(userID string, session string) (*Session, error) {
 	var output Session
-	err := r.db.Where("user_id = ?").Where("session = ?").First(&output).Error
+	err := r.db.Where("user_id = ?", userID).Where("session = ?", session).First(&output).Error
 	if err != nil {
 		return nil, err
 	}

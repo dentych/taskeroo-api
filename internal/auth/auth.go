@@ -22,8 +22,8 @@ func New(sessionRepo *database.SessionRepo, userRepo *database.UserRepo) *Auth {
 	}
 }
 
-func (a *Auth) IsAuthenticated(email string, session string) (bool, error) {
-	_, err := a.sessionRepo.Get(email, session)
+func (a *Auth) IsAuthenticated(userID string, session string) (bool, error) {
+	_, err := a.sessionRepo.Get(userID, session)
 	if err != nil {
 		return false, err
 	}
@@ -32,35 +32,35 @@ func (a *Auth) IsAuthenticated(email string, session string) (bool, error) {
 }
 
 type UserSession struct {
-	Email   string
+	UserID  string
 	Session string
 }
 
-func (a *Auth) Login(email string, password string) (string, error) {
-	user, err := a.userRepo.Get(email)
+func (a *Auth) Login(email string, password string) (UserSession, error) {
+	user, err := a.userRepo.GetByEmail(email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", internalerrors.InvalidEmailOrPassword
+			return UserSession{}, internalerrors.InvalidEmailOrPassword
 		}
-		return "", err
+		return UserSession{}, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password))
 	if err != nil {
-		return "", internalerrors.InvalidEmailOrPassword
+		return UserSession{}, internalerrors.InvalidEmailOrPassword
 	}
 
 	session := uuid.NewString()
 	err = a.sessionRepo.Create(database.Session{
-		UserID:    email,
+		UserID:    user.UserID,
 		Session:   session,
 		CreatedAt: time.Now(),
 	})
 	if err != nil {
-		return "", err
+		return UserSession{}, err
 	}
 
-	return session, nil
+	return UserSession{UserID: user.UserID, Session: session}, nil
 }
 
 func (a *Auth) Register(email string, password string) error {
@@ -70,6 +70,7 @@ func (a *Auth) Register(email string, password string) error {
 	}
 
 	err = a.userRepo.Create(database.User{
+		UserID:         uuid.NewString(),
 		Email:          email,
 		HashedPassword: string(hashedPassword),
 		CreatedAt:      time.Now(),

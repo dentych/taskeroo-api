@@ -18,13 +18,15 @@ import (
 )
 
 const (
-	CookieKeyEmail   = "auth_email"
+	CookieKeyUserID  = "auth_userid"
 	CookieKeySession = "auth_session"
 )
 
 var (
 	Time31Days = 31 * 24 * time.Hour
 )
+
+var secureCookies bool
 
 func Run() {
 	router := gin.Default()
@@ -35,6 +37,7 @@ func Run() {
 		if dsn == "" {
 			log.Fatalf("DATABASE_URL is not set, but is required.")
 		}
+		secureCookies = true
 	} else {
 		dsn = "postgres://postgres:postgres@localhost/postgres"
 	}
@@ -65,9 +68,6 @@ func Run() {
 		//render with master
 		ctx.HTML(http.StatusOK, "pages/index", gin.H{
 			"title": "Taskeroo",
-			"add": func(a int, b int) int {
-				return a + b
-			},
 		})
 	})
 
@@ -81,20 +81,20 @@ func Run() {
 		email := ctx.PostForm("email")
 		password := ctx.PostForm("password")
 
-		session, err := auth.Login(email, password)
+		userSession, err := auth.Login(email, password)
 		if err != nil {
 			if errors.Is(err, internalerrors.InvalidEmailOrPassword) {
 				ctx.HTML(http.StatusOK, "pages/login", gin.H{
 					"title": "Login",
-					"error": "Email eller password ugyldig.",
+					"error": "Email eller password ugyldig",
 				})
 				return
 			}
-			ctx.HTML(http.StatusInternalServerError, "", nil)
+			ctx.HTML(http.StatusInternalServerError, "pages/index", nil)
 		}
 
-		ctx.SetCookie(CookieKeyEmail, email, int(Time31Days.Seconds()), "", "", true, true)
-		ctx.SetCookie(CookieKeySession, session, int(Time31Days.Seconds()), "", "", true, true)
+		ctx.SetCookie(CookieKeyUserID, userSession.UserID, int(Time31Days.Seconds()), "", "", secureCookies, true)
+		ctx.SetCookie(CookieKeySession, userSession.Session, int(Time31Days.Seconds()), "", "", secureCookies, true)
 		ctx.Redirect(http.StatusFound, "/")
 	})
 
@@ -111,24 +111,29 @@ func Run() {
 		if email == "" {
 			ctx.HTML(http.StatusOK, "pages/login", gin.H{
 				"title": "Login",
-				"error": "Email felt skal udfyldes.",
+				"error": "Email felt skal udfyldes",
 			})
 			return
 		}
 		if password == "" {
 			ctx.HTML(http.StatusOK, "pages/login", gin.H{
 				"title": "Login",
-				"error": "Password felt skal udfyldes.",
+				"error": "Password felt skal udfyldes",
 			})
 			return
 		}
 
 		err := auth.Register(email, password)
 		if err != nil {
-			ctx.HTML(http.StatusInternalServerError, "", nil)
+			ctx.HTML(http.StatusInternalServerError, "pages/index", nil)
 			return
 		}
 
+		ctx.Redirect(http.StatusFound, "/login")
+	})
+
+	protectedRouter.GET("/logout", func(ctx *gin.Context) {
+		clearCookies(ctx)
 		ctx.Redirect(http.StatusFound, "/login")
 	})
 
@@ -145,23 +150,23 @@ func Run() {
 
 func authMiddleware(authService *auth.Auth) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		session, err := ctx.Request.Cookie("auth_session")
-		if err != nil || session == nil || !session.HttpOnly || !session.Secure {
+		userID, err := ctx.Cookie(CookieKeyUserID)
+		if err != nil || userID == "" {
 			clearCookies(ctx)
 			ctx.Redirect(http.StatusFound, "/login")
 			return
 		}
-		userID, err := ctx.Request.Cookie("auth_userid")
-		if err != nil || userID == nil || !userID.HttpOnly || !userID.Secure {
+		session, err := ctx.Cookie(CookieKeySession)
+		if err != nil || session == "" {
 			clearCookies(ctx)
 			ctx.Redirect(http.StatusFound, "/login")
 			return
 		}
 
-		authenticated, err := authService.IsAuthenticated(userID.Value, session.Value)
+		authenticated, err := authService.IsAuthenticated(userID, session)
 		if err != nil {
 			log.Printf("Failed to check if user is authenticated: %s\n", err)
-			ctx.HTML(http.StatusInternalServerError, "", nil)
+			ctx.HTML(http.StatusInternalServerError, "pages/index", nil)
 			return
 		}
 
@@ -176,6 +181,6 @@ func authMiddleware(authService *auth.Auth) gin.HandlerFunc {
 }
 
 func clearCookies(ctx *gin.Context) {
-	ctx.SetCookie(CookieKeyEmail, "", -1, "", "", true, true)
-	ctx.SetCookie(CookieKeySession, "", -1, "", "", true, true)
+	ctx.SetCookie(CookieKeyUserID, "", -1, "", "", secureCookies, true)
+	ctx.SetCookie(CookieKeySession, "", -1, "", "", secureCookies, true)
 }

@@ -10,7 +10,8 @@ type UserRepo struct {
 }
 
 type User struct {
-	Email          string `gorm:"primaryKey"`
+	UserID         string `gorm:"primaryKey"`
+	Email          string `gorm:"uniqueIndex"`
 	HashedPassword string
 	CreatedAt      time.Time
 	LastLogin      time.Time
@@ -26,7 +27,17 @@ func (r *UserRepo) Create(user User) error {
 
 func (r *UserRepo) Get(userID string) (*User, error) {
 	var user User
-	err := r.db.First(&user, "id = ?", userID).Error
+	err := r.db.First(&user, "user_id = ?", userID).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepo) GetByEmail(email string) (*User, error) {
+	var user User
+	err := r.db.First(&user, "email = ?", email).Error
 	if err != nil {
 		return nil, err
 	}
