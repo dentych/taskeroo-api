@@ -112,7 +112,7 @@ func Run() {
 		if password != repeatedPassword {
 			ctx.HTML(http.StatusBadRequest, "pages/register", gin.H{
 				"title": "Login",
-				"error": "De to password matcher ikke",
+				"error": "De to passwords matcher ikke",
 			})
 			return
 		}
