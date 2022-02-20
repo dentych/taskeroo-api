@@ -50,7 +50,7 @@ func Run() {
 		log.Fatalf("Failed to establish database connection: %s\n", err)
 	}
 
-	err = db.AutoMigrate(&database.User{}, &database.Session{})
+	err = db.AutoMigrate(&database.User{}, &database.Session{}, &database.Group{})
 	if err != nil {
 		log.Fatalf("Failed to migrate database models: %s\n", err)
 	}
@@ -81,7 +81,7 @@ func Run() {
 		}
 		HTML(ctx, http.StatusOK, "pages/index", gin.H{
 			"title":  "Taskeroo",
-			"teamID": user.TeamID,
+			"teamID": user.GroupID,
 		})
 	})
 
@@ -113,7 +113,15 @@ func Run() {
 			return
 		}
 
-		err := teamRepo.Create(ctx.Request.Context(), database.Team{ID: uuid.NewString(), TeamName: name, OwnerUserID: userID})
+		teamID := uuid.NewString()
+		err := teamRepo.Create(ctx.Request.Context(), database.Group{ID: teamID, Name: name, OwnerUserID: userID})
+		if err != nil {
+			log.Printf("Failed to create team: %s\n", err)
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		err = userRepo.SetGroup(ctx.Request.Context(), userID, teamID)
 		if err != nil {
 			log.Printf("Failed to create team: %s\n", err)
 			ctx.Status(http.StatusInternalServerError)

@@ -14,7 +14,7 @@ type User struct {
 	UserID         string `gorm:"primaryKey;"`
 	Email          string `gorm:"uniqueIndex;"`
 	HashedPassword string `gorm:"not null;"`
-	TeamID         *string
+	GroupID        *string
 	CreatedAt      time.Time
 	LastLogin      time.Time
 }
@@ -47,6 +47,6 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*User, error) 
 	return &user, nil
 }
 
-func (r *UserRepo) SetTeam(ctx context.Context, userID string, teamID string) error {
+func (r *UserRepo) SetGroup(ctx context.Context, userID string, teamID string) error {
 	return r.db.WithContext(ctx).Model(&User{}).Where("user_id = ?", userID).Update("team_id", teamID).Error
 }

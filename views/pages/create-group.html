@@ -1,9 +1,9 @@
 {{ define "content" }}
 <div class="w-full mt-8 w-3/4 mx-auto">
-  <form class="flex flex-col" action="/team/create" method="post">
+  <form class="flex flex-col" action="/group/create" method="post">
     <h1 class="text-center text-2xl font-light">Opret gruppe</h1>
     <p class="text-gray-600 ml-1 mt-8">Gruppens navn</p>
-    <input type="text" name="name" placeholder="Gruppens navn" class="focus:outline-none border rounded p-1" autofocus="autofocus" required>
+    <input type="text" name="name" placeholder="Gruppens navn" class="focus:outline-none border rounded p-1 mt-1" autofocus="autofocus" required>
 
     <button type="submit" class="bg-pink-300 px-1 py-2 rounded mt-8">Opret gruppe</button>
   </form>
