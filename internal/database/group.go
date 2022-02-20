@@ -15,7 +15,7 @@ type Group struct {
 	OwnerUserID string
 }
 
-func NewTeamRepo(db *gorm.DB) *GroupRepo {
+func NewGroupRepo(db *gorm.DB) *GroupRepo {
 	return &GroupRepo{db: db}
 }
 
