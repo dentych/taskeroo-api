@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/foolin/goview"
 	"github.com/foolin/goview/supports/ginview"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"os"
 )
@@ -38,5 +40,13 @@ func main() {
 		ctx.HTML(http.StatusOK, "page.html", gin.H{"title": "Page file title!!"})
 	})
 
-	router.Run(":8080")
+	port := "8080"
+	portEnv := os.Getenv("PORT")
+	if portEnv != "" {
+		port := portEnv
+	}
+	err := router.Run(fmt.Sprintf(":%s", port))
+	if err != nil {
+		log.Fatalf("Error running server: %s\n", err)
+	}
 }
