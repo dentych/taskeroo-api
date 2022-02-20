@@ -49,7 +49,7 @@ func Run() {
 
 	protectedRouter := router.Group("")
 	protectedRouter.Use(authMiddleware(auth))
-	router.GET("/", func(ctx *gin.Context) {
+	protectedRouter.GET("/", func(ctx *gin.Context) {
 		//render with master
 		ctx.HTML(http.StatusOK, "pages/index", gin.H{
 			"title": "Index title!",
