@@ -31,6 +31,11 @@ func Run() {
 		log.Fatalf("Failed to establish database connection: %s\n", err)
 	}
 
+	err = db.AutoMigrate(&database.User{}, &database.Session{})
+	if err != nil {
+		log.Fatalf("Failed to migrate database models: %s\n", err)
+	}
+
 	userRepo := database.NewUserRepo(db)
 	sessionRepo := database.NewSessionRepo(db)
 
