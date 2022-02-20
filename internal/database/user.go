@@ -10,9 +10,10 @@ type UserRepo struct {
 }
 
 type User struct {
-	UserID         string `gorm:"primaryKey"`
-	Email          string `gorm:"uniqueIndex"`
-	HashedPassword string
+	UserID         string `gorm:"primaryKey;"`
+	Email          string `gorm:"uniqueIndex;"`
+	HashedPassword string `gorm:"not null;"`
+	TeamID         *string
 	CreatedAt      time.Time
 	LastLogin      time.Time
 }
@@ -43,4 +44,8 @@ func (r *UserRepo) GetByEmail(email string) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepo) SetTeam(userID string, teamID string) error {
+	return r.db.Model(&User{}).Where("user_id = ?", userID).Update("team_id", teamID).Error
 }

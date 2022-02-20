@@ -20,6 +20,9 @@ import (
 const (
 	CookieKeyUserID  = "auth_userid"
 	CookieKeySession = "auth_session"
+
+	KeyUserID  = "userID"
+	KeySession = "session"
 )
 
 var (
@@ -53,6 +56,7 @@ func Run() {
 
 	userRepo := database.NewUserRepo(db)
 	sessionRepo := database.NewSessionRepo(db)
+	//teamRepo := database.NewTeamRepo(db)
 
 	auth := auth.New(sessionRepo, userRepo)
 
@@ -65,14 +69,35 @@ func Run() {
 	protectedRouter := router.Group("")
 	protectedRouter.Use(authMiddleware(auth))
 	protectedRouter.GET("/", func(ctx *gin.Context) {
-		//render with master
-		ctx.HTML(http.StatusOK, "pages/index", gin.H{
-			"title": "Taskeroo",
+		userID := ctx.GetString(KeyUserID)
+		user, err := userRepo.Get(userID)
+		if err != nil {
+			log.Printf("Failed to get user with ID '%s': %s\n", userID, err)
+			HTML(ctx, http.StatusInternalServerError, "pages/index", gin.H{
+				"title": "Taskeroo",
+			})
+			return
+		}
+		HTML(ctx, http.StatusOK, "pages/index", gin.H{
+			"title":  "Taskeroo",
+			"teamID": user.TeamID,
+		})
+	})
+
+	protectedRouter.GET("/profile", func(ctx *gin.Context) {
+		HTML(ctx, http.StatusOK, "pages/profile", gin.H{
+			"title": "Profil",
+		})
+	})
+
+	protectedRouter.GET("/team/create", func(ctx *gin.Context) {
+		HTML(ctx, http.StatusOK, "pages/create-team", gin.H{
+			"title": "Opret team",
 		})
 	})
 
 	router.GET("/login", func(ctx *gin.Context) {
-		ctx.HTML(http.StatusOK, "pages/login", gin.H{
+		HTML(ctx, http.StatusOK, "pages/login", gin.H{
 			"title": "Login",
 		})
 	})
@@ -84,13 +109,13 @@ func Run() {
 		userSession, err := auth.Login(email, password)
 		if err != nil {
 			if errors.Is(err, internalerrors.InvalidEmailOrPassword) {
-				ctx.HTML(http.StatusOK, "pages/login", gin.H{
+				HTML(ctx, http.StatusOK, "pages/login", gin.H{
 					"title": "Login",
 					"error": "Email eller password ugyldig",
 				})
 				return
 			}
-			ctx.HTML(http.StatusInternalServerError, "pages/index", nil)
+			HTML(ctx, http.StatusInternalServerError, "pages/index", nil)
 		}
 
 		ctx.SetCookie(CookieKeyUserID, userSession.UserID, int(Time31Days.Seconds()), "", "", secureCookies, true)
@@ -99,7 +124,7 @@ func Run() {
 	})
 
 	router.GET("/register", func(ctx *gin.Context) {
-		ctx.HTML(http.StatusOK, "pages/register", gin.H{
+		HTML(ctx, http.StatusOK, "pages/register", gin.H{
 			"title": "Register",
 		})
 	})
@@ -110,7 +135,7 @@ func Run() {
 		repeatedPassword := ctx.PostForm("repeated-password")
 
 		if password != repeatedPassword {
-			ctx.HTML(http.StatusBadRequest, "pages/register", gin.H{
+			HTML(ctx, http.StatusBadRequest, "pages/register", gin.H{
 				"title": "Login",
 				"error": "De to passwords matcher ikke",
 			})
@@ -118,14 +143,14 @@ func Run() {
 		}
 
 		if email == "" {
-			ctx.HTML(http.StatusBadRequest, "pages/register", gin.H{
+			HTML(ctx, http.StatusBadRequest, "pages/register", gin.H{
 				"title": "Login",
 				"error": "Email felt skal udfyldes",
 			})
 			return
 		}
 		if password == "" {
-			ctx.HTML(http.StatusBadRequest, "pages/register", gin.H{
+			HTML(ctx, http.StatusBadRequest, "pages/register", gin.H{
 				"title": "Login",
 				"error": "Password felt skal udfyldes",
 			})
@@ -134,7 +159,7 @@ func Run() {
 
 		err := auth.Register(email, password)
 		if err != nil {
-			ctx.HTML(http.StatusInternalServerError, "pages/index", nil)
+			HTML(ctx, http.StatusInternalServerError, "pages/index", nil)
 			return
 		}
 
@@ -175,7 +200,7 @@ func authMiddleware(authService *auth.Auth) gin.HandlerFunc {
 		authenticated, err := authService.IsAuthenticated(userID, session)
 		if err != nil {
 			log.Printf("Failed to check if user is authenticated: %s\n", err)
-			ctx.HTML(http.StatusInternalServerError, "pages/index", nil)
+			HTML(ctx, http.StatusInternalServerError, "pages/index", nil)
 			return
 		}
 
@@ -185,6 +210,8 @@ func authMiddleware(authService *auth.Auth) gin.HandlerFunc {
 			return
 		}
 
+		ctx.Set("userID", userID)
+		ctx.Set("session", session)
 		ctx.Next()
 	}
 }
@@ -192,4 +219,11 @@ func authMiddleware(authService *auth.Auth) gin.HandlerFunc {
 func clearCookies(ctx *gin.Context) {
 	ctx.SetCookie(CookieKeyUserID, "", -1, "", "", secureCookies, true)
 	ctx.SetCookie(CookieKeySession, "", -1, "", "", secureCookies, true)
+}
+
+func HTML(ctx *gin.Context, status int, templateName string, obj gin.H) {
+	if value := ctx.GetString("userID"); value != "" {
+		obj["userID"] = value
+	}
+	ctx.HTML(status, templateName, obj)
 }
