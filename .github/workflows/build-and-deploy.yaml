@@ -20,6 +20,8 @@ jobs:
     needs: [Build]
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch_depth: 0
       - name: Dokku
         uses: dokku/github-action@v1.0.1
         with:
