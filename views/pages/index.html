@@ -1,33 +1,37 @@
 {{define "content"}}
 {{ if not .groupID }}
-<p class="px-8 mt-8 text-center">Du er ikke i et team!<br>
-  <a href="/group/create" class="text-violet-500">Opret ny gruppe</a>, eller klik på et invitations-link for at blive medlem af en eksisterende gruppe.</p>
+<div class="px-8 mt-8 text-center">
+  <p class="text-lg">Du er ikke i et team!</p>
+  <p class="mt-4"><a href="/group/create" class="text-violet-500">Opret ny gruppe</a>, eller klik på et invitations-link
+    for at blive
+    medlem af en eksisterende gruppe.</p>
+</div>
 {{ else }}
 <div class="flex flex-col w-full px-4 mt-8">
-{{ if .tasks }}
+  {{ if .tasks }}
   <div class="flex flex-col space-y-6">
     {{ range .tasks }}
     <div class="border border-pink-300 rounded-md bg-white p-2">
-      <h1 class="text-xl">{{ .Title }}</h1>
+      <h1 class="text-lg">{{ .Title }}</h1>
       <p class="mt-2">{{ .Description }}</p>
     </div>
     {{ end }}
-  </divc>
-{{ else }}
-  <div class="flex flex-col text-center mt-8 px-4">
-    <p>Du har ingen opgaver!</p>
+  </div>
+  {{ else }}
+  <div class="flex flex-col text-center px-4">
+    <p class="text-lg">Du har ingen opgaver!</p>
     <p class="mt-4">Opret din første ved at trykke på krydset nederst til højre!</p>
   </div>
-{{ end }}
+  {{ end }}
 </div>
 <div class="absolute bottom-0 w-full">
   <div class="flex flex-col">
     <a href="/task/create" class="p-2 bg-pink-500 ml-auto rounded-full text-white m-3">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
       </svg>
     </a>
   </div>
 </div>
 {{ end }}
-{{end}}
+{{ end }}
