@@ -90,8 +90,8 @@ func Run() {
 		})
 	})
 
-	protectedRouter.GET("/team/create", func(ctx *gin.Context) {
-		HTML(ctx, http.StatusOK, "pages/create-team", gin.H{
+	protectedRouter.GET("/group/create", func(ctx *gin.Context) {
+		HTML(ctx, http.StatusOK, "pages/create-group", gin.H{
 			"title": "Opret team",
 		})
 	})
