@@ -10,7 +10,7 @@ type UserRepo struct {
 }
 
 type User struct {
-	Email          string
+	Email          string `gorm:"primaryKey"`
 	HashedPassword string
 	CreatedAt      time.Time
 	LastLogin      time.Time

@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"errors"
 	"github.com/dentych/taskeroo/internal/database"
-	"github.com/dentych/taskeroo/internal/errors"
+	internalerrors "github.com/dentych/taskeroo/internal/errors"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -20,8 +22,8 @@ func New(sessionRepo *database.SessionRepo, userRepo *database.UserRepo) *Auth {
 	}
 }
 
-func (a *Auth) IsAuthenticated(userID string, session string) (bool, error) {
-	_, err := a.sessionRepo.Get(userID, session)
+func (a *Auth) IsAuthenticated(email string, session string) (bool, error) {
+	_, err := a.sessionRepo.Get(email, session)
 	if err != nil {
 		return false, err
 	}
@@ -29,20 +31,28 @@ func (a *Auth) IsAuthenticated(userID string, session string) (bool, error) {
 	return true, nil
 }
 
-func (a *Auth) Login(userID string, password string) (string, error) {
-	user, err := a.userRepo.Get(userID)
+type UserSession struct {
+	Email   string
+	Session string
+}
+
+func (a *Auth) Login(email string, password string) (string, error) {
+	user, err := a.userRepo.Get(email)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", internalerrors.InvalidEmailOrPassword
+		}
 		return "", err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password))
 	if err != nil {
-		return "", errors.ErrEmailOrPasswordIncorrect
+		return "", internalerrors.InvalidEmailOrPassword
 	}
 
 	session := uuid.NewString()
 	err = a.sessionRepo.Create(database.Session{
-		UserID:    userID,
+		UserID:    email,
 		Session:   session,
 		CreatedAt: time.Now(),
 	})
@@ -51,4 +61,23 @@ func (a *Auth) Login(userID string, password string) (string, error) {
 	}
 
 	return session, nil
+}
+
+func (a *Auth) Register(email string, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 0)
+	if err != nil {
+		return err
+	}
+
+	err = a.userRepo.Create(database.User{
+		Email:          email,
+		HashedPassword: string(hashedPassword),
+		CreatedAt:      time.Now(),
+		LastLogin:      time.Now(),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
