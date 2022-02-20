@@ -107,16 +107,24 @@ func Run() {
 	router.POST("/register", func(ctx *gin.Context) {
 		email := ctx.PostForm("email")
 		password := ctx.PostForm("password")
+		repeatedPassword := ctx.PostForm("repeated-password")
+
+		if password != repeatedPassword {
+			ctx.HTML(http.StatusBadRequest, "pages/login", gin.H{
+				"title": "Login",
+				"error": "De to password matcher ikke",
+			})
+		}
 
 		if email == "" {
-			ctx.HTML(http.StatusOK, "pages/login", gin.H{
+			ctx.HTML(http.StatusBadRequest, "pages/login", gin.H{
 				"title": "Login",
 				"error": "Email felt skal udfyldes",
 			})
 			return
 		}
 		if password == "" {
-			ctx.HTML(http.StatusOK, "pages/login", gin.H{
+			ctx.HTML(http.StatusBadRequest, "pages/login", gin.H{
 				"title": "Login",
 				"error": "Password felt skal udfyldes",
 			})
