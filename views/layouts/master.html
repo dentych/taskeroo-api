@@ -4,11 +4,11 @@
 <html>
 <head>
     <title>{{.title}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body>
+<body class="bg-gray-100">
 {{template "content" .}}
-<hr>
-{{include "layouts/footer"}}
 </body>
 </html>

@@ -1,16 +1,21 @@
 package main
 
 import (
+	"github.com/foolin/goview"
 	"github.com/foolin/goview/supports/ginview"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
 )
 
 func main() {
 	router := gin.Default()
 
-	//new template engine
-	router.HTMLRender = ginview.Default()
+	goviewConfig := goview.DefaultConfig
+	if os.Getenv("ENVIRONMENT") != "prod" {
+		goviewConfig.DisableCache = true
+	}
+	router.HTMLRender = ginview.New(goviewConfig)
 
 	router.GET("/", func(ctx *gin.Context) {
 		//render with master
@@ -19,6 +24,12 @@ func main() {
 			"add": func(a int, b int) int {
 				return a + b
 			},
+		})
+	})
+
+	router.GET("/login", func(ctx *gin.Context) {
+		ctx.HTML(http.StatusOK, "pages/login", gin.H{
+			"title": "Login",
 		})
 	})
 
