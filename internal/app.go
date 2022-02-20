@@ -65,6 +65,12 @@ func Run() {
 		})
 	})
 
+	router.GET("/register", func(ctx *gin.Context) {
+		ctx.HTML(http.StatusOK, "pages/register", gin.H{
+			"title": "Register",
+		})
+	})
+
 	port := "8080"
 	portEnv := os.Getenv("PORT")
 	if portEnv != "" {
