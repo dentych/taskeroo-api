@@ -110,7 +110,7 @@ func Run() {
 		repeatedPassword := ctx.PostForm("repeated-password")
 
 		if password != repeatedPassword {
-			ctx.HTML(http.StatusBadRequest, "pages/login", gin.H{
+			ctx.HTML(http.StatusBadRequest, "pages/register", gin.H{
 				"title": "Login",
 				"error": "De to password matcher ikke",
 			})
@@ -118,14 +118,14 @@ func Run() {
 		}
 
 		if email == "" {
-			ctx.HTML(http.StatusBadRequest, "pages/login", gin.H{
+			ctx.HTML(http.StatusBadRequest, "pages/register", gin.H{
 				"title": "Login",
 				"error": "Email felt skal udfyldes",
 			})
 			return
 		}
 		if password == "" {
-			ctx.HTML(http.StatusBadRequest, "pages/login", gin.H{
+			ctx.HTML(http.StatusBadRequest, "pages/register", gin.H{
 				"title": "Login",
 				"error": "Password felt skal udfyldes",
 			})
