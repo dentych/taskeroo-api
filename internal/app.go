@@ -71,6 +71,8 @@ func Run() {
 		})
 	})
 
+	router.POST("/register")
+
 	port := "8080"
 	portEnv := os.Getenv("PORT")
 	if portEnv != "" {
