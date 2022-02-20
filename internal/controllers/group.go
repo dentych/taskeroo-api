@@ -48,15 +48,15 @@ func (c *GroupController) PostCreateGroup() gin.HandlerFunc {
 			return
 		}
 
-		teamID := uuid.NewString()
-		err := c.groupRepo.Create(ctx.Request.Context(), database.Group{ID: teamID, Name: name, OwnerUserID: userID})
+		groupID := uuid.NewString()
+		err := c.groupRepo.Create(ctx.Request.Context(), database.Group{ID: groupID, Name: name, OwnerUserID: userID})
 		if err != nil {
 			log.Printf("Failed to create team: %s\n", err)
 			ctx.Status(http.StatusInternalServerError)
 			return
 		}
 
-		err = c.userRepo.SetGroup(ctx.Request.Context(), userID, teamID)
+		err = c.userRepo.SetGroup(ctx.Request.Context(), userID, groupID)
 		if err != nil {
 			log.Printf("Failed to create team: %s\n", err)
 			ctx.Status(http.StatusInternalServerError)

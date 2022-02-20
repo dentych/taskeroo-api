@@ -33,8 +33,8 @@ func (c *TaskController) GetIndex() gin.HandlerFunc {
 			return
 		}
 		HTML(ctx, http.StatusOK, "pages/index", gin.H{
-			"title":  "Taskeroo",
-			"teamID": user.GroupID,
+			"title":   "Taskeroo",
+			"groupID": user.GroupID,
 		})
 	}
 }
