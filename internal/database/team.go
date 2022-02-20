@@ -1,6 +1,9 @@
 package database
 
-import "gorm.io/gorm"
+import (
+	"context"
+	"gorm.io/gorm"
+)
 
 type TeamRepo struct {
 	db *gorm.DB
@@ -16,6 +19,6 @@ func NewTeamRepo(db *gorm.DB) *TeamRepo {
 	return &TeamRepo{db: db}
 }
 
-func (r *TeamRepo) Create(team Team) error {
-	return r.db.Create(&team).Error
+func (r *TeamRepo) Create(ctx context.Context, team Team) error {
+	return r.db.WithContext(ctx).Create(&team).Error
 }

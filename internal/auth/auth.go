@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"github.com/dentych/taskeroo/internal/database"
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
@@ -22,8 +23,8 @@ func New(sessionRepo *database.SessionRepo, userRepo *database.UserRepo) *Auth {
 	}
 }
 
-func (a *Auth) IsAuthenticated(userID string, session string) (bool, error) {
-	_, err := a.sessionRepo.Get(userID, session)
+func (a *Auth) IsAuthenticated(ctx context.Context, userID string, session string) (bool, error) {
+	_, err := a.sessionRepo.Get(ctx, userID, session)
 	if err != nil {
 		return false, err
 	}
@@ -36,8 +37,8 @@ type UserSession struct {
 	Session string
 }
 
-func (a *Auth) Login(email string, password string) (UserSession, error) {
-	user, err := a.userRepo.GetByEmail(email)
+func (a *Auth) Login(ctx context.Context, email string, password string) (UserSession, error) {
+	user, err := a.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return UserSession{}, internalerrors.InvalidEmailOrPassword
@@ -51,7 +52,7 @@ func (a *Auth) Login(email string, password string) (UserSession, error) {
 	}
 
 	session := uuid.NewString()
-	err = a.sessionRepo.Create(database.Session{
+	err = a.sessionRepo.Create(ctx, database.Session{
 		UserID:    user.UserID,
 		Session:   session,
 		CreatedAt: time.Now(),
@@ -63,13 +64,13 @@ func (a *Auth) Login(email string, password string) (UserSession, error) {
 	return UserSession{UserID: user.UserID, Session: session}, nil
 }
 
-func (a *Auth) Register(email string, password string) error {
+func (a *Auth) Register(ctx context.Context, email string, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 0)
 	if err != nil {
 		return err
 	}
 
-	err = a.userRepo.Create(database.User{
+	err = a.userRepo.Create(ctx, database.User{
 		UserID:         uuid.NewString(),
 		Email:          email,
 		HashedPassword: string(hashedPassword),

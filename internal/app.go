@@ -9,6 +9,7 @@ import (
 	"github.com/foolin/goview"
 	"github.com/foolin/goview/supports/ginview"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -56,7 +57,7 @@ func Run() {
 
 	userRepo := database.NewUserRepo(db)
 	sessionRepo := database.NewSessionRepo(db)
-	//teamRepo := database.NewTeamRepo(db)
+	teamRepo := database.NewTeamRepo(db)
 
 	auth := auth.New(sessionRepo, userRepo)
 
@@ -70,7 +71,7 @@ func Run() {
 	protectedRouter.Use(authMiddleware(auth))
 	protectedRouter.GET("/", func(ctx *gin.Context) {
 		userID := ctx.GetString(KeyUserID)
-		user, err := userRepo.Get(userID)
+		user, err := userRepo.Get(ctx.Request.Context(), userID)
 		if err != nil {
 			log.Printf("Failed to get user with ID '%s': %s\n", userID, err)
 			HTML(ctx, http.StatusInternalServerError, "pages/index", gin.H{
@@ -92,8 +93,34 @@ func Run() {
 
 	protectedRouter.GET("/group/create", func(ctx *gin.Context) {
 		HTML(ctx, http.StatusOK, "pages/create-group", gin.H{
-			"title": "Opret team",
+			"title": "Opret gruppe",
 		})
+	})
+
+	protectedRouter.POST("/group/create", func(ctx *gin.Context) {
+		name := ctx.PostForm("name")
+		if name == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/create-group", gin.H{
+				"title": "Opret gruppe",
+				"error": "Gruppens navn skal udfyldes",
+			})
+			return
+		}
+
+		userID := ctx.GetString(KeyUserID)
+		if userID == "" {
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		err := teamRepo.Create(ctx.Request.Context(), database.Team{ID: uuid.NewString(), TeamName: name, OwnerUserID: userID})
+		if err != nil {
+			log.Printf("Failed to create team: %s\n", err)
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		ctx.Redirect(http.StatusFound, "/")
 	})
 
 	router.GET("/login", func(ctx *gin.Context) {
@@ -106,7 +133,7 @@ func Run() {
 		email := ctx.PostForm("email")
 		password := ctx.PostForm("password")
 
-		userSession, err := auth.Login(email, password)
+		userSession, err := auth.Login(ctx.Request.Context(), email, password)
 		if err != nil {
 			if errors.Is(err, internalerrors.InvalidEmailOrPassword) {
 				HTML(ctx, http.StatusOK, "pages/login", gin.H{
@@ -157,7 +184,7 @@ func Run() {
 			return
 		}
 
-		err := auth.Register(email, password)
+		err := auth.Register(ctx.Request.Context(), email, password)
 		if err != nil {
 			HTML(ctx, http.StatusInternalServerError, "pages/index", nil)
 			return
@@ -197,7 +224,7 @@ func authMiddleware(authService *auth.Auth) gin.HandlerFunc {
 			return
 		}
 
-		authenticated, err := authService.IsAuthenticated(userID, session)
+		authenticated, err := authService.IsAuthenticated(ctx.Request.Context(), userID, session)
 		if err != nil {
 			log.Printf("Failed to check if user is authenticated: %s\n", err)
 			HTML(ctx, http.StatusInternalServerError, "pages/index", nil)
