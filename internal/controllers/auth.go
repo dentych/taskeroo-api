@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"errors"
-	"github.com/dentych/taskeroo/internal/auth"
+	"github.com/dentych/taskeroo/internal/app"
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -10,14 +10,14 @@ import (
 )
 
 type AuthController struct {
-	authService   *auth.Auth
+	authService   *app.Auth
 	secureCookies bool
 }
 
 func NewAuthController(
 	router gin.IRouter,
 	protectedRouter gin.IRouter,
-	authService *auth.Auth,
+	authService *app.Auth,
 	secureCookies bool,
 ) *AuthController {
 	handler := &AuthController{authService: authService, secureCookies: secureCookies}
@@ -34,7 +34,7 @@ func NewAuthController(
 	return handler
 }
 
-func AuthMiddleware(authService *auth.Auth) gin.HandlerFunc {
+func AuthMiddleware(authService *app.Auth) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userID, err := ctx.Cookie(CookieKeyUserID)
 		if err != nil || userID == "" {

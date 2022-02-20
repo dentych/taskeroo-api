@@ -3,13 +3,21 @@
 <p class="px-8 mt-8 text-center">Du er ikke i et team!<br>
   <a href="/group/create" class="text-violet-500">Opret ny gruppe</a>, eller klik på et invitations-link for at blive medlem af en eksisterende gruppe.</p>
 {{ else }}
-<div class="flex flex-col">
-{{ if not .tasks }}
+<div class="flex flex-col w-full px-4 mt-8">
+{{ if .tasks }}
+  <div class="flex flex-col space-y-6">
+    {{ range .tasks }}
+    <div class="border border-pink-300 rounded-md bg-white p-2">
+      <h1 class="text-xl">{{ .Title }}</h1>
+      <p class="mt-2">{{ .Description }}</p>
+    </div>
+    {{ end }}
+  </divc>
+{{ else }}
   <div class="flex flex-col text-center mt-8 px-4">
     <p>Du har ingen opgaver!</p>
     <p class="mt-4">Opret din første ved at trykke på krydset nederst til højre!</p>
   </div>
-{{ else }}
 {{ end }}
 </div>
 <div class="absolute bottom-0 w-full">

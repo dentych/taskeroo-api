@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/dentych/taskeroo/internal/app"
 	"github.com/dentych/taskeroo/internal/database"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -35,6 +36,26 @@ func (c *TaskController) GetIndex() gin.HandlerFunc {
 		HTML(ctx, http.StatusOK, "pages/index", gin.H{
 			"title":   "Taskeroo",
 			"groupID": user.GroupID,
+			"tasks": []app.Task{
+				{
+					ID:          "1234",
+					GroupID:     "1234",
+					Title:       "Vask 30 grader",
+					Description: "Vask tøj på 30 grader, hver uge",
+				},
+				{
+					ID:          "1235",
+					GroupID:     "1235",
+					Title:       "Vask 60 grader",
+					Description: "Vask tøj på 60 grader, hver uge",
+				},
+				{
+					ID:          "1236",
+					GroupID:     "1236",
+					Title:       "Støvsug ovenpå",
+					Description: "Støvsug alle værelser ovenpå: Badeværelse, soveværelse, gæsteværelse, kontor.",
+				},
+			},
 		})
 	}
 }

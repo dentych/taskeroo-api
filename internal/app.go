@@ -2,7 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"github.com/dentych/taskeroo/internal/auth"
+	"github.com/dentych/taskeroo/internal/app"
 	"github.com/dentych/taskeroo/internal/controllers"
 	"github.com/dentych/taskeroo/internal/database"
 	"github.com/foolin/goview"
@@ -56,7 +56,7 @@ func Run() {
 	sessionRepo := database.NewSessionRepo(db)
 	groupRepo := database.NewGroupRepo(db)
 
-	authService := auth.New(sessionRepo, userRepo)
+	authService := app.New(sessionRepo, userRepo)
 
 	goviewConfig := goview.DefaultConfig
 	if os.Getenv("ENVIRONMENT") != "prod" {
