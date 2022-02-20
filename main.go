@@ -43,7 +43,7 @@ func main() {
 	port := "8080"
 	portEnv := os.Getenv("PORT")
 	if portEnv != "" {
-		port := portEnv
+		port = portEnv
 	}
 	err := router.Run(fmt.Sprintf(":%s", port))
 	if err != nil {
