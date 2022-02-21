@@ -12,13 +12,13 @@ type TaskRepo struct {
 
 type Task struct {
 	ID               string `gorm:"primaryKey;"`
-	Title            string
+	Title            string `gorm:"not null;"`
 	Description      string
 	GroupID          string  `gorm:"index"`
 	Assignee         *string `gorm:"index"`
-	RotatingAssignee bool
-	IntervalSize     int
-	IntervalUnit     string
+	RotatingAssignee bool    `gorm:"not null;default: false;"`
+	IntervalSize     int     `gorm:"not null;"`
+	IntervalUnit     string  `gorm:"not null;"`
 	NextDueDate      time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time

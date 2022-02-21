@@ -257,10 +257,11 @@ func (c *TaskController) GetEditTask() gin.HandlerFunc {
 		}
 
 		HTML(ctx, http.StatusOK, "pages/edit-task", gin.H{
-			"title":    "Opdatere opgave",
-			"task":     task,
-			"members":  members,
-			"assignee": task.Assignee,
+			"title":            "Opdatere opgave",
+			"task":             task,
+			"members":          members,
+			"assignee":         task.Assignee,
+			"rotatingAssignee": task.RotatingAssignee,
 			"compare": func(a *string, b string) bool {
 				if a == nil {
 					return false

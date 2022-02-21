@@ -56,8 +56,13 @@
     </select>
 
     <div class="flex mt-8 items-center">
-      <input type="checkbox" name="rotatingAssignee"
+      {{ if .rotatingAssignee }}
+      <input type="checkbox" name="rotatingAssignee" value="true" checked
              class="flex-none h-5 w-5 appearance-none border border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 align-top bg-no-repeat bg-center bg-contain float-left cursor-pointer">
+      {{ else }}
+      <input type="checkbox" name="rotatingAssignee" value="true"
+             class="flex-none h-5 w-5 appearance-none border border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 align-top bg-no-repeat bg-center bg-contain float-left cursor-pointer">
+      {{ end }}
       <p class="ml-2">Roter tildeling af medlemmer</p>
     </div>
     <p class="text-sm mt-2">Rotering af medlemmer tildeler en ny person fra gruppen, hver gang opgaven er udført.</p>
