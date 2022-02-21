@@ -95,3 +95,30 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 
 	return mappedTasks, nil
 }
+
+func (t *TaskLogic) Delete(ctx context.Context, userID string, taskID string) error {
+	user, err := t.userRepo.Get(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.GroupID == nil {
+		return internalerrors.ErrUserNotInGroup
+	}
+
+	task, err := t.taskRepo.Get(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	if task.GroupID != *user.GroupID {
+		return internalerrors.ErrUserNotMemberOfGroup
+	}
+
+	err = t.taskRepo.Delete(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -26,6 +26,8 @@ func NewTaskController(
 	protectedRouter.GET("/task/create", handler.GetCreateTask())
 	protectedRouter.POST("/task/create", handler.PostCreateTask())
 
+	protectedRouter.POST("/task/:id/delete", handler.PostDelete())
+
 	return handler
 }
 
@@ -122,6 +124,27 @@ func (c *TaskController) PostCreateTask() gin.HandlerFunc {
 			log.Printf("Failed to create task: %s\n", err)
 			ctx.Status(http.StatusInternalServerError)
 			return
+		}
+
+		ctx.Redirect(http.StatusFound, "/")
+	}
+}
+
+func (c *TaskController) PostDelete() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		taskID := ctx.Param("id")
+		if taskID == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/index", gin.H{
+				"title": "Taskeroo",
+				"alert": "Der skete en fejl da opgaven skulle slettes. Prøv igen.",
+			})
+			return
+		}
+
+		userID := ctx.GetString(KeyUserID)
+		err := c.taskLogic.Delete(ctx.Request.Context(), userID, taskID)
+		if err != nil {
+			log.Printf("Failed to delete task for user=%s: %s\n", userID, err)
 		}
 
 		ctx.Redirect(http.StatusFound, "/")
