@@ -70,3 +70,11 @@ func (r *TaskRepo) Update(ctx context.Context, task Task) error {
 		"updated_at":        time.Now(),
 	}).Error
 }
+
+func (r *TaskRepo) UpdateCompleted(ctx context.Context, taskID string, updateTime time.Time, nextDueDate time.Time, assignee *string) error {
+	return r.db.WithContext(ctx).Model(&Task{ID: taskID}).Updates(map[string]interface{}{
+		"updated_at":    updateTime,
+		"next_due_date": nextDueDate,
+		"assignee":      assignee,
+	}).Error
+}

@@ -259,7 +259,29 @@ func (t *TaskLogic) Complete(ctx context.Context, userID string, taskID string) 
 		return internalerrors.ErrUserNotMemberOfGroup
 	}
 
-	err = t.taskRepo.Update(ctx, database.Task{ID: taskID, UpdatedAt: time.Now(), NextDueDate: calculateNextDueDate(task.IntervalUnit, task.IntervalSize)})
+	if task.RotatingAssignee {
+		if task.Assignee == nil {
+			task.Assignee = &userID
+		}
+		users, err := t.userRepo.GetByGroup(ctx, *user.GroupID)
+		if err != nil {
+			return err
+		}
+		i := 0
+		for range users {
+			if users[i].ID == *task.Assignee {
+				break
+			}
+			i++
+		}
+		if i >= len(users)-1 {
+			task.Assignee = &users[0].ID
+		} else {
+			task.Assignee = &users[i+1].ID
+		}
+	}
+
+	err = t.taskRepo.UpdateCompleted(ctx, taskID, time.Now(), calculateNextDueDate(task.IntervalUnit, task.IntervalSize), task.Assignee)
 	if err != nil {
 		return err
 	}
