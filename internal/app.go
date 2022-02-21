@@ -5,6 +5,7 @@ import (
 	"github.com/dentych/taskeroo/internal/app"
 	"github.com/dentych/taskeroo/internal/controllers"
 	"github.com/dentych/taskeroo/internal/database"
+	"github.com/dentych/taskeroo/internal/telegram"
 	"github.com/foolin/goview"
 	"github.com/foolin/goview/supports/ginview"
 	"github.com/gin-gonic/gin"
@@ -54,6 +55,7 @@ func Run() {
 		&database.Task{},
 		&database.GroupDiscord{},
 		&database.DiscordUsername{},
+		&database.Telegram{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to migrate database models: %s\n", err)
@@ -64,10 +66,12 @@ func Run() {
 	groupRepo := database.NewGroupRepo(db)
 	taskRepo := database.NewTaskRepo(db)
 	notificationRepo := database.NewNotificationRepo(db)
+	telegramRepo := database.NewTelegramRepo(db)
 
 	authService := app.NewAuthLogic(sessionRepo, userRepo, groupRepo)
 	taskLogic := app.NewTaskLogic(taskRepo, userRepo)
 	notificationLogic := app.NewNotificationLogic(notificationRepo, userRepo, groupRepo)
+	telegramLogic := app.NewTelegramLogic(telegramRepo)
 
 	goviewConfig := goview.DefaultConfig
 	if os.Getenv("ENVIRONMENT") != "prod" {
@@ -82,6 +86,13 @@ func Run() {
 	controllers.NewGroupController(protectedRouter, groupRepo, userRepo)
 	controllers.NewTaskController(protectedRouter, userRepo, taskLogic)
 	controllers.NewNotificationController(protectedRouter, notificationLogic)
+	controllers.NewTelegramController(protectedRouter, telegramLogic)
+
+	bot := telegram.NewTelegram(telegramRepo, os.Getenv("TELEGRAM_TOKEN"))
+	err = bot.Start()
+	if err != nil {
+		log.Fatalf("Failed to start, because Telegram Bot could not start: %s\n", err)
+	}
 
 	port := "8080"
 	portEnv := os.Getenv("PORT")

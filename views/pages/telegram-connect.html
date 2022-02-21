@@ -1,0 +1,11 @@
+{{ define "content" }}
+<div class="flex flex-col text-center w-3/4 mx-auto mt-8">
+  {{ if .error }}
+  <p class="bg-red-300 p-2 border border-red-600 rounded">{{ .error }}</p>
+  {{ end }}
+
+  {{ if .success }}
+  <p class="bg-green-300 p-2 border border-green-600 rounded">{{ .success }}</p>
+  {{ end }}
+</div>
+{{ end }}
