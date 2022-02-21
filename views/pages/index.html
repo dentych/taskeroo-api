@@ -17,7 +17,7 @@
       <div class="w-full bg-gray-200 h-2.5 rounded-full mt-4">
         <div class="bg-pink-500 rounded-full h-2.5" style="width: {{ call $.whole .PercentageLeft }}%"></div>
       </div>
-      <p class="text-sm mt-2">{{ .DaysLeft }} {{ if (lt .DaysLeft 2) }} dag {{ else }} dage {{ end }} tilbage</p>
+      <p class="text-sm mt-2">{{ .DaysLeft }} {{ if (lt .DaysLeft 2) }} dag {{ else }} dage {{ end }} tilbage ({{ .DueDate }})</p>
       <form action="/task/{{ .ID }}/delete" method="post" class="ml-auto">
         <button type="submit" class="mt-2 text-pink-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

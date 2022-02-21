@@ -22,6 +22,7 @@ type Task struct {
 	IntervalUnit   string
 	DaysLeft       int
 	PercentageLeft float64
+	DueDate        string
 }
 
 func NewTaskLogic(taskRepo *database.TaskRepo, userRepo *database.UserRepo) *TaskLogic {
@@ -98,10 +99,15 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 			IntervalUnit:   task.IntervalUnit,
 			DaysLeft:       calculateDaysLeft(task.NextDueDate),
 			PercentageLeft: calculatePercentageLeft(task.IntervalUnit, task.IntervalSize, task.NextDueDate),
+			DueDate:        dateFormat(task.NextDueDate),
 		})
 	}
 
 	return mappedTasks, nil
+}
+
+func dateFormat(date time.Time) string {
+	return date.Format("02/01/2006")
 }
 
 func (t *TaskLogic) Delete(ctx context.Context, userID string, taskID string) error {
@@ -179,4 +185,29 @@ func calculateNextDueDate(unit string, size int) time.Time {
 	default:
 		return time.Now()
 	}
+}
+
+var day = map[time.Weekday]string{
+	time.Monday:    "Mandag",
+	time.Tuesday:   "Tirsdag",
+	time.Wednesday: "Onsdag",
+	time.Thursday:  "Torsdag",
+	time.Friday:    "Fredag",
+	time.Saturday:  "Lørdag",
+	time.Sunday:    "Søndag",
+}
+
+var month = map[time.Month]string{
+	time.January:   "Januar",
+	time.February:  "Februar",
+	time.March:     "Marts",
+	time.April:     "April",
+	time.May:       "Maj",
+	time.June:      "Juni",
+	time.July:      "Juli",
+	time.August:    "August",
+	time.September: "September",
+	time.October:   "Oktober",
+	time.November:  "November",
+	time.December:  "December",
 }
