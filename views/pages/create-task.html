@@ -4,15 +4,18 @@
     <h1 class="text-center text-2xl font-light">Opret opgave</h1>
 
     <p class="text-gray-600 ml-1 mt-8">Opgavens titel</p>
-    <input type="text" name="title" placeholder="Opgavens titel" class="focus:outline-none border rounded p-1 mt-1" autofocus="autofocus" required>
+    <input type="text" name="title" placeholder="Opgavens titel" class="focus:outline-none border rounded p-1 mt-1"
+           autofocus="autofocus" required>
 
     <p class="text-gray-600 ml-1 mt-8">Beskrivelse</p>
-    <textarea name="description" placeholder="Beskrivelse" class="focus:outline-none border rounded p-1 mt-1 h-48" required></textarea>
+    <textarea name="description" placeholder="Beskrivelse" class="focus:outline-none border rounded p-1 mt-1 h-48"
+              required></textarea>
 
     <p class="text-gray-600 ml-1 mt-8">Hvor ofte skal opgaven udføres?</p>
     <div class="flex">
       <input type="number" name="intervalUnit" placeholder="0" class="focus:outline-none border rounded p-1 w-1/5">
       <select name="intervalType" class="focus:outline-none grow ml-2 bg-white border rounded">
+        <option value="onetime">Engangsopgave</option>
         <option value="day">Dag</option>
         <option value="week">Uge</option>
         <option value="month">Måned</option>
