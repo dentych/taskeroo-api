@@ -51,3 +51,10 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*User, error) 
 func (r *UserRepo) SetGroup(ctx context.Context, userID string, groupID *string) error {
 	return r.db.WithContext(ctx).Model(&User{}).Where("id = ?", userID).Update("group_id", groupID).Error
 }
+
+func (r *UserRepo) GetByGroup(ctx context.Context, groupID string) ([]User, error) {
+	var users []User
+	err := r.db.WithContext(ctx).Find(&users, "group_id = ?", groupID).Error
+	return users, err
+
+}

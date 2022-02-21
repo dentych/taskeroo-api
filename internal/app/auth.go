@@ -88,10 +88,12 @@ func (a *AuthLogic) Register(ctx context.Context, email, name, password string) 
 }
 
 type Profile struct {
-	Email     string
-	Name      string
-	GroupID   *string
-	GroupName string
+	Email      string
+	Name       string
+	GroupID    *string
+	GroupName  string
+	GroupOwner bool
+	Members    []string
 }
 
 func (a *AuthLogic) GetProfile(ctx context.Context, userID string) (Profile, error) {
@@ -101,19 +103,32 @@ func (a *AuthLogic) GetProfile(ctx context.Context, userID string) (Profile, err
 	}
 
 	groupName := ""
+	groupOwner := false
+	var members []string
 	if user.GroupID != nil {
 		group, err := a.groupRepo.Get(ctx, *user.GroupID)
 		if err != nil {
 			return Profile{}, err
 		}
 		groupName = group.Name
+		groupOwner = group.OwnerUserID == user.ID
+		users, err := a.userRepo.GetByGroup(ctx, *user.GroupID)
+		if err != nil {
+			return Profile{}, err
+		}
+
+		for _, user := range users {
+			members = append(members, user.Name)
+		}
 	}
 
 	return Profile{
-		Email:     user.Email,
-		Name:      user.Name,
-		GroupID:   user.GroupID,
-		GroupName: groupName,
+		Email:      user.Email,
+		Name:       user.Name,
+		GroupID:    user.GroupID,
+		GroupName:  groupName,
+		GroupOwner: groupOwner,
+		Members:    members,
 	}, nil
 }
 

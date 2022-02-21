@@ -1,0 +1,17 @@
+{{ define "content" }}
+<div class="w-full mt-8 w-3/4 mx-auto">
+  <form class="flex flex-col" action="/group/members/add" method="post">
+    <h1 class="text-center text-2xl font-light">Tilføj medlem til gruppe</h1>
+
+    <p class="text-gray-600 ml-1 mt-8">Indtast brugerens email</p>
+    <input type="email" name="email" placeholder="Brugerens email" class="focus:outline-none border rounded p-1 mt-1"
+           autofocus="autofocus" required>
+
+    {{ if .error }}
+    <p class="mt-4 bg-red-200 border border-red-400 rounded py-1 px-2 text-red-600">{{ .error }}</p>
+    {{ end }}
+
+    <button type="submit" class="bg-pink-400 px-1 py-2 rounded mt-8">Tilføj medlem</button>
+  </form>
+</div>
+{{ end }}

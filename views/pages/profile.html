@@ -3,8 +3,17 @@
   <p>Hej, {{ .profile.Name }} 👋</p>
   {{ if .profile.GroupID }}
   <p class="mt-8">Medlem af <span class="font-semibold">{{ .profile.GroupName }}</span></p>
-<!--  <a href="/group/leave" class="text-violet-500">Forlad gruppen</a>-->
-    <a onclick="leaveGroup()" class="text-violet-500">Forlad gruppen</a>
+  <p class="mt-1 font-semibold">Gruppens medlemmer:</p>
+  <ul class="list-disc">
+    {{ range .profile.Members }}
+    <li>{{ . }}</li>
+    {{ end }}
+  </ul>
+  {{ if .profile.GroupOwner }}
+  <p class="mt-4">Du er ejer af gruppen, og kan invitere folk.</p>
+  <a href="/group/members/add" class="text-violet-500 mt-2">Tilføj medlem</a>
+  {{ end }}
+  <a onclick="leaveGroup()" class="text-violet-500 mt-2">Forlad gruppen</a>
   {{ else }}
   <p class="mt-8">Du er ikke medlem af en gruppe.</p>
   <a href="/group/create" class="text-violet-500">Opret gruppe</a>
