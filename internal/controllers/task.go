@@ -28,6 +28,11 @@ func NewTaskController(
 
 	protectedRouter.POST("/task/:id/delete", handler.PostDelete())
 
+	protectedRouter.GET("/task/:id/edit", handler.GetEditTask())
+	protectedRouter.POST("/task/:id/edit", handler.PostEditTask())
+
+	protectedRouter.POST("/task/:id/complete", handler.PostTaskComplete())
+
 	return handler
 }
 
@@ -139,7 +144,7 @@ func (c *TaskController) PostDelete() gin.HandlerFunc {
 		if taskID == "" {
 			HTML(ctx, http.StatusBadRequest, "pages/index", gin.H{
 				"title": "Taskeroo",
-				"alert": "Der skete en fejl da opgaven skulle slettes. Prøv igen.",
+				"alert": "Der skete en fejl da opgaven skulle slettes. Prøv igen om lidt.",
 			})
 			return
 		}
@@ -148,6 +153,109 @@ func (c *TaskController) PostDelete() gin.HandlerFunc {
 		err := c.taskLogic.Delete(ctx.Request.Context(), userID, taskID)
 		if err != nil {
 			log.Printf("Failed to delete task for user=%s: %s\n", userID, err)
+		}
+
+		ctx.Redirect(http.StatusFound, "/")
+	}
+}
+
+func (c *TaskController) GetEditTask() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		taskID := ctx.Param("id")
+		userID := ctx.GetString(KeyUserID)
+		task, err := c.taskLogic.Get(ctx, userID, taskID)
+		if err != nil {
+			log.Printf("Failed to get task=%s for user=%s: %s\n", taskID, userID, err)
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		HTML(ctx, http.StatusOK, "pages/edit-task", gin.H{
+			"title": "Opdatere opgave",
+			"task":  task,
+		})
+	}
+}
+
+func (c *TaskController) PostEditTask() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		taskID := ctx.Param("id")
+		userID := ctx.GetString(KeyUserID)
+
+		title := ctx.PostForm("title")
+		description := ctx.PostForm("description")
+		intervalSize := ctx.PostForm("intervalSize")
+		intervalUnit := ctx.PostForm("intervalUnit")
+
+		formattedIntervalSize, err := strconv.Atoi(intervalSize)
+		if err != nil {
+			formattedIntervalSize = 1
+		}
+
+		task := app.Task{
+			ID:           taskID,
+			Title:        title,
+			Description:  description,
+			IntervalSize: formattedIntervalSize,
+			IntervalUnit: intervalUnit,
+		}
+
+		if title == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/edit-task", gin.H{
+				"title": "Opdatere opgave",
+				"error": "Titel skal udfyldes",
+				"task":  task,
+			})
+			return
+		}
+		if description == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/edit-task", gin.H{
+				"title": "Opdatere opgave",
+				"error": "Description skal udfyldes",
+				"task":  task,
+			})
+			return
+		}
+		if intervalUnit == "" || intervalSize == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/edit-task", gin.H{
+				"title": "Opdatere opgave",
+				"error": "Hyppighed skal udfyldes",
+				"task":  task,
+			})
+			return
+		}
+
+		err = c.taskLogic.Update(ctx, userID, taskID, app.NewTask{
+			Title:        title,
+			Description:  description,
+			IntervalSize: formattedIntervalSize,
+			IntervalUnit: intervalUnit,
+		})
+		if err != nil {
+			log.Printf("Failed to get task=%s for user=%s: %s\n", taskID, userID, err)
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		ctx.Redirect(http.StatusFound, "/")
+	}
+}
+
+func (c *TaskController) PostTaskComplete() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		taskID := ctx.Param("id")
+		if taskID == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/index", gin.H{
+				"title": "Taskeroo",
+				"alert": "Der skete en fejl da opgaven skulle udføres. Prøv igen om lidt.",
+			})
+			return
+		}
+
+		userID := ctx.GetString(KeyUserID)
+		err := c.taskLogic.Complete(ctx.Request.Context(), userID, taskID)
+		if err != nil {
+			log.Printf("Failed to complete task for user=%s: %s\n", userID, err)
 		}
 
 		ctx.Redirect(http.StatusFound, "/")

@@ -1,0 +1,50 @@
+{{ define "content" }}
+<div class="w-full mt-8 w-3/4 mx-auto">
+  <form class="flex flex-col" action="/task/{{ .task.ID }}/edit" method="post">
+    <h1 class="text-center text-2xl font-light">Opret opgave</h1>
+
+    <p class="text-gray-600 ml-1 mt-8">Opgavens titel</p>
+    <input type="text" name="title" placeholder="Opgavens titel" class="focus:outline-none border rounded p-1 mt-1"
+           value="{{ .task.Title }}"
+           autofocus="autofocus" required>
+
+    <p class="text-gray-600 ml-1 mt-8">Beskrivelse</p>
+    <textarea name="description" placeholder="Beskrivelse" class="focus:outline-none border rounded p-1 mt-1 h-48"
+              required>{{ .task.Description }}</textarea>
+
+    <p class="text-gray-600 ml-1 mt-8">Hvor ofte skal opgaven udføres?</p>
+    <div class="flex">
+      <input type="number" name="intervalSize" placeholder="0" class="focus:outline-none border rounded p-1 w-1/5"
+             value="{{ .task.IntervalSize }}">
+      <select name="intervalUnit" class="focus:outline-none grow ml-2 bg-white border rounded">
+        {{ if eq .task.IntervalUnit "onetime" }}
+        <option value="onetime" selected>Engangsopgave</option>
+        {{ else }}
+        <option value="onetime">Engangsopgave</option>
+        {{ end }}
+
+        {{ if eq .task.IntervalUnit "day" }}
+        <option value="day" selected>Dag</option>
+        {{ else }}
+        <option value="day">Dag</option>
+        {{ end }}
+
+        {{ if eq .task.IntervalUnit "week" }}
+        <option value="week" selected>Uge</option>
+        {{ else }}
+        <option value="week">Uge</option>
+        {{ end }}
+
+        {{ if eq .task.IntervalUnit "month" }}
+        <option value="month" selected>Måned</option>
+        {{ else }}
+        <option value="month">Måned</option>
+        {{ end }}
+      </select>
+    </div>
+
+    <button type="submit" class="bg-pink-400 px-1 py-2 rounded mt-8">Opdater opgave</button>
+    <a onclick="history.back()" class="bg-gray-300 px-1 py-2 rounded mt-4 text-center">Tilbage</a>
+  </form>
+</div>
+{{ end }}

@@ -19,6 +19,7 @@ type Task struct {
 	IntervalUnit string
 	NextDueDate  time.Time
 	CreatedAt    time.Time
+	UpdatedAt    time.Time
 	DeletedAt    *time.Time
 }
 
@@ -52,4 +53,8 @@ func (r *TaskRepo) Get(ctx context.Context, taskID string) (*Task, error) {
 	}
 
 	return &task, nil
+}
+
+func (r *TaskRepo) Update(ctx context.Context, task Task) error {
+	return r.db.WithContext(ctx).Updates(&task).Error
 }

@@ -17,14 +17,24 @@
       <div class="w-full bg-gray-200 h-2.5 rounded-full mt-4">
         <div class="bg-pink-500 rounded-full h-2.5" style="width: {{ call $.whole .PercentageLeft }}%"></div>
       </div>
-      <p class="text-sm mt-2">{{ .DaysLeft }} {{ if (lt .DaysLeft 2) }} dag {{ else }} dage {{ end }} tilbage ({{ .DueDate }})</p>
-      <form action="/task/{{ .ID }}/delete" method="post" class="ml-auto">
-        <button type="submit" class="mt-2 text-pink-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      <p class="text-sm mt-2">{{ .DaysLeft }} {{ if (lt .DaysLeft 2) }} dag {{ else }} dage {{ end }} tilbage ({{
+        .DueDate }})</p>
+      <div class="flex ml-auto">
+        <a onclick='deleteTask("{{ .ID }}", "{{ .Title }}")' class="h-6 w-6 mt-2 mr-4 text-pink-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+               stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
           </svg>
-        </button>
-      </form>
+        </a>
+        <a href="/task/{{ .ID }}/edit" class="mt-2 text-pink-600 h-6 w-6 mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+        </a>
+        <button class="mt-1 bg-pink-600 text-white px-4 py-1 rounded" onclick='completeTask("{{ .ID }}", "{{ .Title }}")'>Udført</button>
+      </div>
     </div>
     {{ end }}
   </div>
@@ -45,4 +55,34 @@
   </div>
 </div>
 {{ end }}
+
+<script>
+  function deleteTask(id, title) {
+    let result = confirm("Er du sikker på, at du vil slette tasken '" + title + "'?")
+    if (result) {
+      let resp = fetch("/task/" + id + "/delete", {
+        method: "POST"
+      })
+      resp.then(r => {
+        if (r.ok) {
+          location.reload()
+        }
+      })
+    }
+  }
+
+  function completeTask(id, title) {
+    let result = confirm("Har du udført opgave '" + title +"'?")
+    if (result) {
+      let resp = fetch("/task/" + id + "/complete", {
+        method: "POST"
+      })
+      resp.then(r => {
+        if (r.ok) {
+          location.reload()
+        }
+      })
+    }
+  }
+</script>
 {{ end }}

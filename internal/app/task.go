@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dentych/taskeroo/internal/database"
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"strings"
 	"time"
@@ -57,6 +58,7 @@ func (t *TaskLogic) Create(ctx context.Context, userID string, newTask NewTask) 
 		IntervalUnit: newTask.IntervalUnit,
 		NextDueDate:  calculateNextDueDate(newTask.IntervalUnit, newTask.IntervalSize),
 		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 	err = t.taskRepo.Create(ctx, task)
 	if err != nil {
@@ -108,12 +110,6 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 	return mappedTasks, nil
 }
 
-func dateFormat(date time.Time) string {
-	weekday := strings.ToLower(dayMap[date.Weekday()])
-	month := strings.ToLower(monthMap[date.Month()])
-	return fmt.Sprintf("%s, %d. %s %d", weekday, date.Day(), month, date.Year())
-}
-
 func (t *TaskLogic) Delete(ctx context.Context, userID string, taskID string) error {
 	user, err := t.userRepo.Get(ctx, userID)
 	if err != nil {
@@ -139,6 +135,107 @@ func (t *TaskLogic) Delete(ctx context.Context, userID string, taskID string) er
 	}
 
 	return nil
+}
+
+func (t *TaskLogic) Get(ctx *gin.Context, userID string, taskID string) (*Task, error) {
+	user, err := t.userRepo.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.GroupID == nil {
+		return nil, internalerrors.ErrUserNotInGroup
+	}
+
+	task, err := t.taskRepo.Get(ctx, taskID)
+	if err != nil {
+		return nil, err
+	}
+
+	if *user.GroupID != task.GroupID {
+		return nil, internalerrors.ErrUserNotMemberOfGroup
+	}
+
+	return &Task{
+		ID:             task.ID,
+		GroupID:        task.GroupID,
+		Title:          task.Title,
+		Description:    task.Description,
+		IntervalSize:   task.IntervalSize,
+		IntervalUnit:   task.IntervalUnit,
+		DaysLeft:       0,
+		PercentageLeft: 0,
+		DueDate:        "",
+	}, nil
+}
+
+func (t *TaskLogic) Update(ctx *gin.Context, userID string, taskID string, editTask NewTask) error {
+	user, err := t.userRepo.Get(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.GroupID == nil {
+		return internalerrors.ErrUserNotInGroup
+	}
+
+	task, err := t.taskRepo.Get(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	if *user.GroupID != task.GroupID {
+		return internalerrors.ErrUserNotMemberOfGroup
+	}
+
+	err = t.taskRepo.Update(ctx, database.Task{
+		ID:           taskID,
+		Title:        editTask.Title,
+		Description:  editTask.Description,
+		GroupID:      *user.GroupID,
+		IntervalSize: editTask.IntervalSize,
+		IntervalUnit: editTask.IntervalUnit,
+		NextDueDate:  calculateNextDueDate(editTask.IntervalUnit, editTask.IntervalSize),
+		UpdatedAt:    time.Now(),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *TaskLogic) Complete(ctx context.Context, userID string, taskID string) error {
+	user, err := t.userRepo.Get(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.GroupID == nil {
+		return internalerrors.ErrUserNotInGroup
+	}
+
+	task, err := t.taskRepo.Get(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	if task.GroupID != *user.GroupID {
+		return internalerrors.ErrUserNotMemberOfGroup
+	}
+
+	err = t.taskRepo.Update(ctx, database.Task{ID: taskID, UpdatedAt: time.Now(), NextDueDate: calculateNextDueDate(task.IntervalUnit, task.IntervalSize)})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func dateFormat(date time.Time) string {
+	weekday := strings.ToLower(dayMap[date.Weekday()])
+	month := strings.ToLower(monthMap[date.Month()])
+	return fmt.Sprintf("%s, %d. %s %d", weekday, date.Day(), month, date.Year())
 }
 
 func calculateDaysLeft(date time.Time) int {
