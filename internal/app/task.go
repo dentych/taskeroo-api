@@ -2,9 +2,11 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"github.com/dentych/taskeroo/internal/database"
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
 	"github.com/google/uuid"
+	"strings"
 	"time"
 )
 
@@ -107,7 +109,9 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 }
 
 func dateFormat(date time.Time) string {
-	return date.Format("02/01/2006")
+	weekday := strings.ToLower(dayMap[date.Weekday()])
+	month := strings.ToLower(monthMap[date.Month()])
+	return fmt.Sprintf("%s, %d. %s %d", weekday, date.Day(), month, date.Year())
 }
 
 func (t *TaskLogic) Delete(ctx context.Context, userID string, taskID string) error {
@@ -187,7 +191,7 @@ func calculateNextDueDate(unit string, size int) time.Time {
 	}
 }
 
-var day = map[time.Weekday]string{
+var dayMap = map[time.Weekday]string{
 	time.Monday:    "Mandag",
 	time.Tuesday:   "Tirsdag",
 	time.Wednesday: "Onsdag",
@@ -197,7 +201,7 @@ var day = map[time.Weekday]string{
 	time.Sunday:    "Søndag",
 }
 
-var month = map[time.Month]string{
+var monthMap = map[time.Month]string{
 	time.January:   "Januar",
 	time.February:  "Februar",
 	time.March:     "Marts",
