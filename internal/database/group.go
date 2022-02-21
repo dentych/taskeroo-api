@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"gorm.io/gorm"
+	"time"
 )
 
 type GroupRepo struct {
@@ -13,6 +14,8 @@ type Group struct {
 	ID          string `gorm:"primaryKey;"`
 	Name        string
 	OwnerUserID string
+	CreatedAt   time.Time
+	DeletedAt   *time.Time
 }
 
 func NewGroupRepo(db *gorm.DB) *GroupRepo {

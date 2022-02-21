@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
+	"time"
 )
 
 type GroupController struct {
@@ -54,7 +55,7 @@ func (c *GroupController) PostCreateGroup() gin.HandlerFunc {
 		}
 
 		groupID := uuid.NewString()
-		err := c.groupRepo.Create(ctx.Request.Context(), database.Group{ID: groupID, Name: name, OwnerUserID: userID})
+		err := c.groupRepo.Create(ctx.Request.Context(), database.Group{ID: groupID, Name: name, OwnerUserID: userID, CreatedAt: time.Now()})
 		if err != nil {
 			log.Printf("Failed to create team: %s\n", err)
 			ctx.Status(http.StatusInternalServerError)
