@@ -116,8 +116,9 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 					return nil, err
 				}
 				userNames[*task.Assignee] = u.Name
-				assigneeName = &u.Name
+				userName = u.Name
 			}
+			assigneeName = &userName
 		}
 		mappedTasks = append(mappedTasks, Task{
 			ID:               task.ID,
