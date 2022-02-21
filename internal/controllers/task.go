@@ -57,6 +57,9 @@ func (c *TaskController) GetIndex() gin.HandlerFunc {
 			"title":   "Taskeroo",
 			"groupID": user.GroupID,
 			"tasks":   tasks,
+			"whole": func(number float64) int {
+				return int(number * 100)
+			},
 		})
 	}
 }

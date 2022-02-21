@@ -14,12 +14,14 @@ type TaskLogic struct {
 }
 
 type Task struct {
-	ID           string
-	GroupID      string
-	Title        string
-	Description  string
-	IntervalSize int
-	IntervalUnit string
+	ID             string
+	GroupID        string
+	Title          string
+	Description    string
+	IntervalSize   int
+	IntervalUnit   string
+	DaysLeft       int
+	PercentageLeft float64
 }
 
 func NewTaskLogic(taskRepo *database.TaskRepo, userRepo *database.UserRepo) *TaskLogic {
@@ -33,7 +35,7 @@ type NewTask struct {
 	IntervalUnit string
 }
 
-func (t *TaskLogic) Create(ctx context.Context, userID string, task NewTask) (Task, error) {
+func (t *TaskLogic) Create(ctx context.Context, userID string, newTask NewTask) (Task, error) {
 	user, err := t.userRepo.Get(ctx, userID)
 	if err != nil {
 		return Task{}, err
@@ -43,26 +45,30 @@ func (t *TaskLogic) Create(ctx context.Context, userID string, task NewTask) (Ta
 	}
 
 	taskID := uuid.NewString()
-	err = t.taskRepo.Create(ctx, database.Task{
+	task := database.Task{
 		ID:           taskID,
-		Title:        task.Title,
-		Description:  task.Description,
+		Title:        newTask.Title,
+		Description:  newTask.Description,
 		GroupID:      *user.GroupID,
-		IntervalSize: task.IntervalSize,
-		IntervalUnit: task.IntervalUnit,
+		IntervalSize: newTask.IntervalSize,
+		IntervalUnit: newTask.IntervalUnit,
+		NextDueDate:  calculateNextDueDate(newTask.IntervalUnit, newTask.IntervalSize),
 		CreatedAt:    time.Now(),
-	})
+	}
+	err = t.taskRepo.Create(ctx, task)
 	if err != nil {
 		return Task{}, err
 	}
 
 	return Task{
-		ID:           taskID,
-		GroupID:      *user.GroupID,
-		Title:        task.Title,
-		Description:  task.Description,
-		IntervalSize: task.IntervalSize,
-		IntervalUnit: task.IntervalUnit,
+		ID:             taskID,
+		GroupID:        *user.GroupID,
+		Title:          newTask.Title,
+		Description:    newTask.Description,
+		IntervalSize:   newTask.IntervalSize,
+		IntervalUnit:   newTask.IntervalUnit,
+		DaysLeft:       calculateDaysLeft(task.NextDueDate),
+		PercentageLeft: calculatePercentageLeft(task.IntervalUnit, task.IntervalSize, task.NextDueDate),
 	}, nil
 }
 
@@ -84,12 +90,14 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 	var mappedTasks []Task
 	for _, task := range tasks {
 		mappedTasks = append(mappedTasks, Task{
-			ID:           task.ID,
-			GroupID:      task.GroupID,
-			Title:        task.Title,
-			Description:  task.Description,
-			IntervalSize: task.IntervalSize,
-			IntervalUnit: task.IntervalUnit,
+			ID:             task.ID,
+			GroupID:        task.GroupID,
+			Title:          task.Title,
+			Description:    task.Description,
+			IntervalSize:   task.IntervalSize,
+			IntervalUnit:   task.IntervalUnit,
+			DaysLeft:       calculateDaysLeft(task.NextDueDate),
+			PercentageLeft: calculatePercentageLeft(task.IntervalUnit, task.IntervalSize, task.NextDueDate),
 		})
 	}
 
@@ -121,4 +129,54 @@ func (t *TaskLogic) Delete(ctx context.Context, userID string, taskID string) er
 	}
 
 	return nil
+}
+
+func calculateDaysLeft(date time.Time) int {
+	until := time.Until(date)
+	if until.Hours() < 24 {
+		if until.Hours() < 12 {
+			return 0
+		}
+		return 1
+	}
+	return int(until.Truncate(24*time.Hour).Hours()) / 24
+}
+
+func calculatePercentageLeft(unit string, size int, nextDueDate time.Time) float64 {
+	totalHours := calculateTotalHours(unit, size)
+
+	hoursUntilDue := time.Until(nextDueDate).Hours()
+
+	result := hoursUntilDue / float64(totalHours)
+	if result < 0 {
+		return 0
+	}
+
+	return result
+}
+
+func calculateTotalHours(unit string, size int) int {
+	switch unit {
+	case "day":
+		return 24 * size
+	case "week":
+		return 24 * 7 * size
+	case "month":
+		return 24 * 30 * size
+	default:
+		return 24
+	}
+}
+
+func calculateNextDueDate(unit string, size int) time.Time {
+	switch unit {
+	case "day":
+		return time.Now().AddDate(0, 0, size)
+	case "week":
+		return time.Now().AddDate(0, 0, size*7)
+	case "month":
+		return time.Now().AddDate(0, size, 0)
+	default:
+		return time.Now()
+	}
 }

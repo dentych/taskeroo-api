@@ -17,6 +17,7 @@ type Task struct {
 	GroupID      string `gorm:"index"`
 	IntervalSize int
 	IntervalUnit string
+	NextDueDate  time.Time
 	CreatedAt    time.Time
 	DeletedAt    *time.Time
 }
