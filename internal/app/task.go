@@ -18,11 +18,17 @@ type TaskLogic struct {
 }
 
 type Task struct {
-	ID             string
-	GroupID        string
-	Title          string
-	Description    string
-	IntervalSize   int
+	ID          string
+	GroupID     string
+	Title       string
+	Description string
+	// Assignee is the userID for the person assigned to this task
+	Assignee         *string
+	RotatingAssignee bool
+	// IntervalSize specifies how many units has to pass before the task has to be completed again,
+	// i.e. 2 week = once every 2 weeks.
+	IntervalSize int
+	// IntervalUnit can be either onetime, day, week or month.
 	IntervalUnit   string
 	DaysLeft       int
 	PercentageLeft float64

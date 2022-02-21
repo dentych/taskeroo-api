@@ -11,16 +11,18 @@ type TaskRepo struct {
 }
 
 type Task struct {
-	ID           string `gorm:"primaryKey;"`
-	Title        string
-	Description  string
-	GroupID      string `gorm:"index"`
-	IntervalSize int
-	IntervalUnit string
-	NextDueDate  time.Time
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    *time.Time
+	ID               string `gorm:"primaryKey;"`
+	Title            string
+	Description      string
+	GroupID          string  `gorm:"index"`
+	Assignee         *string `gorm:"index"`
+	RotatingAssignee bool
+	IntervalSize     int
+	IntervalUnit     string
+	NextDueDate      time.Time
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        *time.Time
 }
 
 func NewTaskRepo(db *gorm.DB) *TaskRepo {
@@ -56,5 +58,15 @@ func (r *TaskRepo) Get(ctx context.Context, taskID string) (*Task, error) {
 }
 
 func (r *TaskRepo) Update(ctx context.Context, task Task) error {
-	return r.db.WithContext(ctx).Updates(&task).Error
+	return r.db.WithContext(ctx).Updates(map[string]interface{}{
+		"title":             task.Title,
+		"description":       task.Description,
+		"group_id":          task.GroupID,
+		"assignee":          task.Assignee,
+		"rotating_assignee": task.RotatingAssignee,
+		"interval_size":     task.IntervalSize,
+		"interval_unit":     task.IntervalUnit,
+		"next_due_date":     task.NextDueDate,
+		"updated_at":        time.Now(),
+	}).Error
 }
