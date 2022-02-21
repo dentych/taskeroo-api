@@ -58,7 +58,7 @@ func (r *TaskRepo) Get(ctx context.Context, taskID string) (*Task, error) {
 }
 
 func (r *TaskRepo) Update(ctx context.Context, task Task) error {
-	return r.db.WithContext(ctx).Updates(map[string]interface{}{
+	return r.db.WithContext(ctx).Model(&task).Updates(map[string]interface{}{
 		"title":             task.Title,
 		"description":       task.Description,
 		"group_id":          task.GroupID,

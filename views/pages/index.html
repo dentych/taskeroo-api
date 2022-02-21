@@ -14,6 +14,8 @@
     <div class="border border-pink-300 rounded-md bg-white px-4 py-2 flex flex-col">
       <h1 class="text-lg font-semibold">{{ .Title }}</h1>
       <p class="mt-2">{{ .Description }}</p>
+      <p>Tildelt til: {{ if .AssigneeName }} {{ .AssigneeName }} {{ else }} Ingen {{ end }}
+      </p>
       <div class="w-full bg-gray-200 h-2.5 rounded-full mt-4">
         <div class="bg-pink-500 rounded-full h-2.5" style="width: {{ call $.whole .PercentageLeft }}%"></div>
       </div>
@@ -33,7 +35,9 @@
                   d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
           </svg>
         </a>
-        <button class="mt-1 bg-pink-600 text-white px-4 py-1 rounded" onclick='completeTask("{{ .ID }}", "{{ .Title }}")'>Udført</button>
+        <button class="mt-1 bg-pink-600 text-white px-4 py-1 rounded"
+                onclick='completeTask("{{ .ID }}", "{{ .Title }}")'>Udført
+        </button>
       </div>
     </div>
     {{ end }}
@@ -72,7 +76,7 @@
   }
 
   function completeTask(id, title) {
-    let result = confirm("Har du udført opgave '" + title +"'?")
+    let result = confirm("Har du udført opgave '" + title + "'?")
     if (result) {
       let resp = fetch("/task/" + id + "/complete", {
         method: "POST"

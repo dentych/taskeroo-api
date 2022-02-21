@@ -24,6 +24,7 @@ type Task struct {
 	Description string
 	// Assignee is the userID for the person assigned to this task
 	Assignee         *string
+	AssigneeName     *string
 	RotatingAssignee bool
 	// IntervalSize specifies how many units has to pass before the task has to be completed again,
 	// i.e. 2 week = once every 2 weeks.
@@ -104,17 +105,33 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 	}
 
 	var mappedTasks []Task
+	userNames := map[string]string{}
 	for _, task := range tasks {
+		var assigneeName *string
+		if task.Assignee != nil {
+			userName := userNames[*task.Assignee]
+			if userName == "" {
+				u, err := t.userRepo.Get(ctx, *task.Assignee)
+				if err != nil {
+					return nil, err
+				}
+				userNames[*task.Assignee] = u.Name
+				assigneeName = &u.Name
+			}
+		}
 		mappedTasks = append(mappedTasks, Task{
-			ID:             task.ID,
-			GroupID:        task.GroupID,
-			Title:          task.Title,
-			Description:    task.Description,
-			IntervalSize:   task.IntervalSize,
-			IntervalUnit:   task.IntervalUnit,
-			DaysLeft:       calculateDaysLeft(task.NextDueDate),
-			PercentageLeft: calculatePercentageLeft(task.IntervalUnit, task.IntervalSize, task.NextDueDate),
-			DueDate:        dateFormat(task.NextDueDate),
+			ID:               task.ID,
+			GroupID:          task.GroupID,
+			Title:            task.Title,
+			Assignee:         task.Assignee,
+			AssigneeName:     assigneeName,
+			RotatingAssignee: task.RotatingAssignee,
+			Description:      task.Description,
+			IntervalSize:     task.IntervalSize,
+			IntervalUnit:     task.IntervalUnit,
+			DaysLeft:         calculateDaysLeft(task.NextDueDate),
+			PercentageLeft:   calculatePercentageLeft(task.IntervalUnit, task.IntervalSize, task.NextDueDate),
+			DueDate:          dateFormat(task.NextDueDate),
 		})
 	}
 	sort.SliceStable(mappedTasks, func(i, j int) bool {
@@ -171,15 +188,17 @@ func (t *TaskLogic) Get(ctx *gin.Context, userID string, taskID string) (*Task, 
 	}
 
 	return &Task{
-		ID:             task.ID,
-		GroupID:        task.GroupID,
-		Title:          task.Title,
-		Description:    task.Description,
-		IntervalSize:   task.IntervalSize,
-		IntervalUnit:   task.IntervalUnit,
-		DaysLeft:       0,
-		PercentageLeft: 0,
-		DueDate:        "",
+		ID:               task.ID,
+		GroupID:          task.GroupID,
+		Title:            task.Title,
+		Description:      task.Description,
+		Assignee:         task.Assignee,
+		RotatingAssignee: task.RotatingAssignee,
+		IntervalSize:     task.IntervalSize,
+		IntervalUnit:     task.IntervalUnit,
+		DaysLeft:         0,
+		PercentageLeft:   0,
+		DueDate:          "",
 	}, nil
 }
 

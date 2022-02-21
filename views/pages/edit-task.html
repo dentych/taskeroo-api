@@ -47,12 +47,17 @@
     <select name="assignee" class="focus:outline-none grow h-8 bg-white border rounded">
       <option value=""></option>
       {{ range .members }}
+      {{ if (call $.compare $.assignee .ID) }}
+      <option value="{{ .ID }}" selected>{{ .Name }}</option>
+      {{ else }}
       <option value="{{ .ID }}">{{ .Name }}</option>
+      {{ end }}
       {{ end }}
     </select>
 
     <div class="flex mt-8 items-center">
-      <input type="checkbox" name="rotatingAssignee" class="flex-none h-5 w-5 appearance-none border border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 align-top bg-no-repeat bg-center bg-contain float-left cursor-pointer">
+      <input type="checkbox" name="rotatingAssignee"
+             class="flex-none h-5 w-5 appearance-none border border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 align-top bg-no-repeat bg-center bg-contain float-left cursor-pointer">
       <p class="ml-2">Roter tildeling af medlemmer</p>
     </div>
     <p class="text-sm mt-2">Rotering af medlemmer tildeler en ny person fra gruppen, hver gang opgaven er udført.</p>

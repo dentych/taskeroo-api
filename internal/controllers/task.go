@@ -222,9 +222,51 @@ func (c *TaskController) GetEditTask() gin.HandlerFunc {
 			return
 		}
 
+		user, err := c.userRepo.Get(ctx, userID)
+		if err != nil {
+			log.Printf("Failed to get information on user=%s: %s\n", userID, err)
+			HTML(ctx, http.StatusInternalServerError, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Kunne ikke hente brugerinformation. Prøv igen om lidt.",
+			})
+			return
+		}
+		if user.GroupID == nil {
+			HTML(ctx, http.StatusInternalServerError, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Bruger er ikke i en gruppe",
+			})
+			return
+		}
+		users, err := c.userRepo.GetByGroup(ctx, *user.GroupID)
+		if err != nil {
+			log.Printf("Failed to get information on user=%s: %s\n", userID, err)
+			HTML(ctx, http.StatusInternalServerError, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Kunne ikke hente information om medlemmer i gruppen. Prøv igen om lidt.",
+			})
+			return
+		}
+
+		var members []Member
+		for _, member := range users {
+			members = append(members, Member{
+				ID:   member.ID,
+				Name: member.Name,
+			})
+		}
+
 		HTML(ctx, http.StatusOK, "pages/edit-task", gin.H{
-			"title": "Opdatere opgave",
-			"task":  task,
+			"title":    "Opdatere opgave",
+			"task":     task,
+			"members":  members,
+			"assignee": task.Assignee,
+			"compare": func(a *string, b string) bool {
+				if a == nil {
+					return false
+				}
+				return *a == b
+			},
 		})
 	}
 }
