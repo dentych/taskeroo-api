@@ -7,6 +7,7 @@ import (
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"sort"
 	"strings"
 	"time"
 )
@@ -106,6 +107,9 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 			DueDate:        dateFormat(task.NextDueDate),
 		})
 	}
+	sort.SliceStable(mappedTasks, func(i, j int) bool {
+		return mappedTasks[i].DaysLeft < mappedTasks[j].DaysLeft
+	})
 
 	return mappedTasks, nil
 }
