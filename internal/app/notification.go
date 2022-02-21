@@ -2,8 +2,13 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"github.com/dentych/taskeroo/internal/database"
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
+	"io"
+	"log"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -80,7 +85,7 @@ func (n *NotificationLogic) GetNotificationInfo(ctx context.Context, userID stri
 	}
 
 	if username != nil {
-		output.Username = username.DiscordUsername
+		output.Username = username.DiscordID
 	}
 
 	return output, nil
@@ -92,6 +97,47 @@ func (n *NotificationLogic) SetupDiscordUsername(ctx context.Context, userID str
 		return err
 	}
 
+	return nil
+}
+
+func (n *NotificationLogic) SendNotification(ctx context.Context, userID string, msg string) error {
+	user, err := n.userRepo.Get(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user.GroupID == nil {
+		return internalerrors.ErrUserNotInGroup
+	}
+
+	groupDiscord, err := n.notificationRepo.GetGroupDiscord(ctx, *user.GroupID)
+	if err != nil {
+		return err
+	}
+	if groupDiscord == nil {
+		return nil
+	}
+
+	discordUsername, err := n.notificationRepo.GetDiscordUsername(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if discordUsername == nil {
+		return nil
+	}
+	msg = fmt.Sprintf("{\"content\": \"Hej <@%s>!\\n%s\"}", discordUsername.DiscordID, msg)
+	req, err := http.NewRequest(http.MethodPost, groupDiscord.Webhook, strings.NewReader(msg))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		log.Printf("Sending notification to user=%s, status code not successful: %d. Body: %s\n", userID, resp.StatusCode, string(body))
+	}
 	return nil
 }
 

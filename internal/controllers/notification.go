@@ -20,6 +20,8 @@ func NewNotificationController(protectedRouter gin.IRouter, notificationLogic *a
 	protectedRouter.GET("/notifications/group-setup", handler.GetSetupGroupNotifications())
 	protectedRouter.POST("/notifications/group-setup", handler.PostSetupGroupNotifications())
 
+	protectedRouter.POST("/debug/notify", handler.PostDebugNotify())
+
 	return handler
 }
 
@@ -88,6 +90,20 @@ func (c *NotificationController) PostNotifications() gin.HandlerFunc {
 				"title": "Notifikationsindstillinger",
 				"error": "Der skete en fejl. Prøv igen om lidt.",
 			})
+			return
+		}
+
+		ctx.Status(http.StatusOK)
+	}
+}
+
+func (c *NotificationController) PostDebugNotify() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		userID := ctx.GetString(KeyUserID)
+		err := c.notificationLogic.SendNotification(ctx, userID, "Dette er en test notifikation")
+		if err != nil {
+			log.Printf("Error sending notification to user=%s: %s\n", userID, err)
+			ctx.JSON(http.StatusInternalServerError, map[string]string{"message": "There was an error"})
 			return
 		}
 

@@ -19,8 +19,8 @@ type GroupDiscord struct {
 }
 
 type DiscordUsername struct {
-	UserID          string `gorm:"primaryKey"`
-	DiscordUsername string `gorm:"not null;"`
+	UserID    string `gorm:"primaryKey"`
+	DiscordID string `gorm:"not null;"`
 }
 
 func NewNotificationRepo(db *gorm.DB) *NotificationRepo {
@@ -49,8 +49,8 @@ func (r *NotificationRepo) CreateDiscordUsername(ctx context.Context, userID str
 		Columns:   []clause.Column{{Name: "user_id"}},
 		UpdateAll: true,
 	}).Create(&DiscordUsername{
-		UserID:          userID,
-		DiscordUsername: discordUsername,
+		UserID:    userID,
+		DiscordID: discordUsername,
 	}).Error
 }
 
