@@ -62,7 +62,7 @@ func (c *TaskController) GetIndex() gin.HandlerFunc {
 
 func (c *TaskController) GetCreateTask() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		HTML(ctx, http.StatusOK, "pages/index", gin.H{
+		HTML(ctx, http.StatusOK, "pages/create-task", gin.H{
 			"title": "Opret opgave",
 		})
 	}
