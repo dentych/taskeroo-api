@@ -11,10 +11,10 @@ type GroupRepo struct {
 }
 
 type Group struct {
-	ID          string `gorm:"primaryKey;"`
-	Name        string
-	OwnerUserID string
-	CreatedAt   time.Time
+	ID          string    `gorm:"primaryKey;"`
+	Name        string    `gorm:"not null;"`
+	OwnerUserID string    `gorm:"not null;"`
+	CreatedAt   time.Time `gorm:"not null;default: current_timestamp();"`
 	DeletedAt   *time.Time
 }
 
