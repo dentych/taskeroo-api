@@ -297,14 +297,9 @@ func dateFormat(date time.Time) string {
 }
 
 func calculateDaysLeft(date time.Time) int {
-	until := time.Until(date)
-	if until.Hours() < 24 {
-		if until.Hours() < 12 {
-			return 0
-		}
-		return 1
-	}
-	return int(until.Truncate(24*time.Hour).Hours()) / 24
+	now := time.Now()
+	fixedUntil := date.Truncate(24 * time.Hour).Sub(now.Truncate(24 * time.Hour))
+	return int(fixedUntil.Hours() / 24)
 }
 
 func calculatePercentageLeft(unit string, size int, nextDueDate time.Time) float64 {
