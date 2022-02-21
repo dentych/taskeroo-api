@@ -90,7 +90,7 @@ func (a *AuthLogic) Register(ctx context.Context, email, name, password string) 
 type Profile struct {
 	Email     string
 	Name      string
-	GroupID   string
+	GroupID   *string
 	GroupName string
 }
 
@@ -100,15 +100,23 @@ func (a *AuthLogic) GetProfile(ctx context.Context, userID string) (Profile, err
 		return Profile{}, err
 	}
 
-	group, err := a.groupRepo.Get(ctx, *user.GroupID)
-	if err != nil {
-		return Profile{}, err
+	groupName := ""
+	if user.GroupID != nil {
+		group, err := a.groupRepo.Get(ctx, *user.GroupID)
+		if err != nil {
+			return Profile{}, err
+		}
+		groupName = group.Name
 	}
 
 	return Profile{
 		Email:     user.Email,
 		Name:      user.Name,
-		GroupID:   *user.GroupID,
-		GroupName: group.Name,
+		GroupID:   user.GroupID,
+		GroupName: groupName,
 	}, nil
+}
+
+func (a *AuthLogic) LeaveGroup(ctx context.Context, userID string) error {
+	return a.userRepo.SetGroup(ctx, userID, nil)
 }

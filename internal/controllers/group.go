@@ -56,7 +56,7 @@ func (c *GroupController) PostCreateGroup() gin.HandlerFunc {
 			return
 		}
 
-		err = c.userRepo.SetGroup(ctx.Request.Context(), userID, groupID)
+		err = c.userRepo.SetGroup(ctx.Request.Context(), userID, &groupID)
 		if err != nil {
 			log.Printf("Failed to create team: %s\n", err)
 			ctx.Status(http.StatusInternalServerError)

@@ -32,6 +32,8 @@ func NewAuthController(
 
 	protectedRouter.GET("/profile", handler.GetProfile())
 
+	protectedRouter.POST("/profile/leave-group", handler.PostLeaveGroup())
+
 	return handler
 }
 
@@ -183,5 +185,21 @@ func (c *AuthController) GetProfile() gin.HandlerFunc {
 			"title":   "Profil",
 			"profile": profile,
 		})
+	}
+}
+
+func (c *AuthController) PostLeaveGroup() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		userID := ctx.GetString(KeyUserID)
+		if err := c.authService.LeaveGroup(ctx.Request.Context(), userID); err != nil {
+			log.Printf("Failed to leave group for user=%s: %s\n", userID, err)
+			HTML(ctx, http.StatusInternalServerError, "pages/profile", gin.H{
+				"title": "Profil",
+				"alert": "Kunne ikke forlade gruppen. Prøv igen senere. Hvis problemet fortsætter, så kontakt support.",
+			})
+			return
+		}
+
+		ctx.Redirect(http.StatusFound, "/profile")
 	}
 }
