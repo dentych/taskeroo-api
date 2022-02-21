@@ -5,6 +5,7 @@ import (
 	"github.com/dentych/taskeroo/internal/app"
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 )
@@ -51,6 +52,11 @@ func AuthMiddleware(authService *app.AuthLogic) gin.HandlerFunc {
 
 		authenticated, err := authService.IsAuthenticated(ctx.Request.Context(), userID, session)
 		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				clearCookies(ctx)
+				ctx.Redirect(http.StatusFound, "/login")
+				return
+			}
 			log.Printf("Failed to check if user is authenticated: %s\n", err)
 			HTML(ctx, http.StatusInternalServerError, "pages/index", nil)
 			return
@@ -110,6 +116,7 @@ func (c *AuthController) GetRegister() gin.HandlerFunc {
 func (c *AuthController) PostRegister() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		email := ctx.PostForm("email")
+		name := ctx.PostForm("name")
 		password := ctx.PostForm("password")
 		repeatedPassword := ctx.PostForm("repeated-password")
 
@@ -135,8 +142,15 @@ func (c *AuthController) PostRegister() gin.HandlerFunc {
 			})
 			return
 		}
+		if name == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/register", gin.H{
+				"title": "Login",
+				"error": "Navn felt skal udfyldes",
+			})
+			return
+		}
 
-		err := c.authService.Register(ctx.Request.Context(), email, password)
+		err := c.authService.Register(ctx.Request.Context(), email, name, password)
 		if err != nil {
 			HTML(ctx, http.StatusInternalServerError, "pages/index", nil)
 			return

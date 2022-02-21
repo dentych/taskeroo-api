@@ -11,8 +11,9 @@ type UserRepo struct {
 }
 
 type User struct {
-	UserID         string `gorm:"primaryKey;"`
+	ID             string `gorm:"primaryKey;"`
 	Email          string `gorm:"uniqueIndex;"`
+	Name           string
 	HashedPassword string `gorm:"not null;"`
 	GroupID        *string
 	CreatedAt      time.Time
@@ -29,7 +30,7 @@ func (r *UserRepo) Create(ctx context.Context, user User) error {
 
 func (r *UserRepo) Get(ctx context.Context, userID string) (*User, error) {
 	var user User
-	err := r.db.WithContext(ctx).First(&user, "user_id = ?", userID).Error
+	err := r.db.WithContext(ctx).First(&user, "id = ?", userID).Error
 	if err != nil {
 		return nil, err
 	}
@@ -48,5 +49,5 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*User, error) 
 }
 
 func (r *UserRepo) SetGroup(ctx context.Context, userID string, groupID string) error {
-	return r.db.WithContext(ctx).Model(&User{}).Where("user_id = ?", userID).Update("group_id", groupID).Error
+	return r.db.WithContext(ctx).Model(&User{}).Where("id = ?", userID).Update("group_id", groupID).Error
 }

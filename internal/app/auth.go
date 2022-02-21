@@ -55,7 +55,7 @@ func (a *AuthLogic) Login(ctx context.Context, email string, password string) (U
 
 	session := uuid.NewString()
 	err = a.sessionRepo.Create(ctx, database.Session{
-		UserID:    user.UserID,
+		UserID:    user.ID,
 		Session:   session,
 		CreatedAt: time.Now(),
 	})
@@ -63,18 +63,19 @@ func (a *AuthLogic) Login(ctx context.Context, email string, password string) (U
 		return UserSession{}, err
 	}
 
-	return UserSession{UserID: user.UserID, Session: session}, nil
+	return UserSession{UserID: user.ID, Session: session}, nil
 }
 
-func (a *AuthLogic) Register(ctx context.Context, email string, password string) error {
+func (a *AuthLogic) Register(ctx context.Context, email, name, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 0)
 	if err != nil {
 		return err
 	}
 
 	err = a.userRepo.Create(ctx, database.User{
-		UserID:         uuid.NewString(),
+		ID:             uuid.NewString(),
 		Email:          email,
+		Name:           name,
 		HashedPassword: string(hashedPassword),
 		CreatedAt:      time.Now(),
 		LastLogin:      time.Now(),
@@ -88,6 +89,7 @@ func (a *AuthLogic) Register(ctx context.Context, email string, password string)
 
 type Profile struct {
 	Email     string
+	Name      string
 	GroupID   string
 	GroupName string
 }
@@ -105,6 +107,7 @@ func (a *AuthLogic) GetProfile(ctx context.Context, userID string) (Profile, err
 
 	return Profile{
 		Email:     user.Email,
+		Name:      user.Name,
 		GroupID:   *user.GroupID,
 		GroupName: group.Name,
 	}, nil

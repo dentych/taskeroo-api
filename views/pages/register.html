@@ -3,12 +3,19 @@
   <div class="w-3/4 mx-auto">
     <form action="/register" method="post" class="flex flex-col">
       <h1 class="mt-16 text-2xl font-light text-center">Opret bruger</h1>
+
       <p class="mt-4 ml-1 text-gray-600">Email</p>
       <input type="email" name="email" placeholder="Email" class="focus:outline-none border rounded p-1 mt-1"
              autofocus="autofocus" required>
+
+      <p class="mt-4 ml-1 text-gray-600">Navn</p>
+      <input type="text" name="name" placeholder="Navn" class="focus:outline-none border rounded p-1 mt-1"
+             autofocus="autofocus" required>
+
       <p class="mt-4 ml-1 text-gray-600">Password</p>
       <input type="password" name="password" placeholder="Password" class="focus:outline-none border rounded p-1 mt-1"
              required>
+
       <p class="mt-4 ml-1 text-gray-600">Gentag password</p>
       <input type="password" name="repeated-password" placeholder="Password"
              class="focus:outline-none border rounded p-1 mt-1"
