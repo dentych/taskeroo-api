@@ -22,3 +22,13 @@ func NewGroupRepo(db *gorm.DB) *GroupRepo {
 func (r *GroupRepo) Create(ctx context.Context, group Group) error {
 	return r.db.WithContext(ctx).Create(&group).Error
 }
+
+func (r *GroupRepo) Get(ctx context.Context, groupID string) (*Group, error) {
+	var group Group
+	err := r.db.WithContext(ctx).First(&group, "id = ?", groupID).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &group, nil
+}

@@ -1,6 +1,11 @@
 {{ define "content" }}
 <div class="w-full mt-8 flex flex-col items-center">
+  {{ if .profile }}
+  <p>Medlem af <span class="font-semibold">{{ .profile.GroupName }}</span></p>
+  <a href="/group/leave" class="text-violet-500">Forlad gruppen</a>
+  {{ else }}
   <a href="/group/create" class="text-violet-500">Opret gruppe</a>
+  {{ end }}
   <a href="/logout" class="text-violet-500 mt-8">Log ud</a>
 </div>
 {{ end }}

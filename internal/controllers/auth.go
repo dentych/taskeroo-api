@@ -155,8 +155,19 @@ func (c *AuthController) GetLogout() gin.HandlerFunc {
 
 func (c *AuthController) GetProfile() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		userID := ctx.GetString(KeyUserID)
+		profile, err := c.authService.GetProfile(ctx, userID)
+		if err != nil {
+			log.Printf("Failed to get profile for user=%s: %s\n", userID, err)
+			HTML(ctx, http.StatusInternalServerError, "pages/index", gin.H{
+				"title": "Taskeroo",
+				"alert": "Failed to get profile for user",
+			})
+			return
+		}
 		HTML(ctx, http.StatusOK, "pages/profile", gin.H{
-			"title": "Profil",
+			"title":   "Profil",
+			"profile": profile,
 		})
 	}
 }

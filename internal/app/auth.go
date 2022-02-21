@@ -14,12 +14,14 @@ import (
 type AuthLogic struct {
 	sessionRepo *database.SessionRepo
 	userRepo    *database.UserRepo
+	groupRepo   *database.GroupRepo
 }
 
-func NewAuthLogic(sessionRepo *database.SessionRepo, userRepo *database.UserRepo) *AuthLogic {
+func NewAuthLogic(sessionRepo *database.SessionRepo, userRepo *database.UserRepo, groupRepo *database.GroupRepo) *AuthLogic {
 	return &AuthLogic{
 		sessionRepo: sessionRepo,
 		userRepo:    userRepo,
+		groupRepo:   groupRepo,
 	}
 }
 
@@ -82,4 +84,28 @@ func (a *AuthLogic) Register(ctx context.Context, email string, password string)
 	}
 
 	return nil
+}
+
+type Profile struct {
+	Email     string
+	GroupID   string
+	GroupName string
+}
+
+func (a *AuthLogic) GetProfile(ctx context.Context, userID string) (Profile, error) {
+	user, err := a.userRepo.Get(ctx, userID)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	group, err := a.groupRepo.Get(ctx, *user.GroupID)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	return Profile{
+		Email:     user.Email,
+		GroupID:   *user.GroupID,
+		GroupName: group.Name,
+	}, nil
 }

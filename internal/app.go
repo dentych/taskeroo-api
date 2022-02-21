@@ -57,7 +57,7 @@ func Run() {
 	groupRepo := database.NewGroupRepo(db)
 	taskRepo := database.NewTaskRepo(db)
 
-	authService := app.NewAuthLogic(sessionRepo, userRepo)
+	authService := app.NewAuthLogic(sessionRepo, userRepo, groupRepo)
 	taskLogic := app.NewTaskLogic(taskRepo, userRepo)
 
 	goviewConfig := goview.DefaultConfig
