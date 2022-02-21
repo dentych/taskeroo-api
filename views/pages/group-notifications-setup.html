@@ -1,0 +1,18 @@
+{{ define "content" }}
+<div class="w-full mt-8 w-4/5 mx-auto">
+  <form class="flex flex-col" action="/notifications/group-setup" method="post">
+    <h1 class="text-center text-2xl font-light">Notifikationsindstillinger</h1>
+
+    <p class="text-gray-600 ml-1 mt-8">Discord webhook URL</p>
+    <input type="text" name="webhook" placeholder="https://discord.com/api/webhook/..." class="focus:outline-none border rounded p-1 mt-1"
+           autofocus="autofocus" required>
+
+    <button type="submit" class="bg-pink-400 px-1 py-2 rounded mt-8">Opsæt Discord webhook URL</button>
+    <button class="bg-gray-300 px-1 py-2 rounded mt-4" onclick="history.back()">Tilbage</button>
+  </form>
+
+  <p class="mt-8 font-semibold">Hvor finder jeg denne?</p>
+  <p class="mt-2">For at oprette en webhook URL, gå til <span class="font-semibold">Server Settings → Integrations → Webhooks</span></p>
+  <a href="https://i.imgur.com/r7Xwo6K.png"><img src="https://i.imgur.com/r7Xwo6K.png" class="mt-4"></a>
+</div>
+{{ end }}

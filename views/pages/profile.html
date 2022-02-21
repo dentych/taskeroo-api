@@ -1,5 +1,5 @@
 {{ define "content" }}
-<div class="w-full mt-8 flex flex-col items-center">
+<div class="w-3/4 mx-auto mt-8 flex flex-col items-center">
   <p>Hej, {{ .profile.Name }} 👋</p>
   {{ if .profile.GroupID }}
   <p class="mt-8">Medlem af <span class="font-semibold">{{ .profile.GroupName }}</span></p>
@@ -10,15 +10,17 @@
     {{ end }}
   </ul>
   {{ if .profile.GroupOwner }}
-  <p class="mt-4">Du er ejer af gruppen, og kan invitere folk.</p>
+  <p class="mt-4 text-center">Du er ejer af gruppen, og kan invitere folk.</p>
   <a href="/group/members/add" class="text-violet-500 mt-2">Tilføj medlem</a>
   {{ end }}
   <a onclick="leaveGroup()" class="text-violet-500 mt-2">Forlad gruppen</a>
+  <p class="mt-8 text-center">Brug notifikationer til nemmere at kunne få besked, når du skal udføre en opgave.</p>
+  <a href="/notifications" class="text-violet-500 mt-2">Notifikationsindstillinger</a>
+  <a href="/logout" class="text-violet-500 mt-8">Log ud</a>
   {{ else }}
   <p class="mt-8">Du er ikke medlem af en gruppe.</p>
   <a href="/group/create" class="text-violet-500">Opret gruppe</a>
   {{ end }}
-  <a href="/logout" class="text-violet-500 mt-8">Log ud</a>
 </div>
 
 <script>
