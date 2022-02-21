@@ -47,7 +47,7 @@ func Run() {
 		log.Fatalf("Failed to establish database connection: %s\n", err)
 	}
 
-	err = db.AutoMigrate(&database.User{}, &database.Session{}, &database.Group{})
+	err = db.AutoMigrate(&database.User{}, &database.Session{}, &database.Group{}, &database.Task{})
 	if err != nil {
 		log.Fatalf("Failed to migrate database models: %s\n", err)
 	}
@@ -55,8 +55,10 @@ func Run() {
 	userRepo := database.NewUserRepo(db)
 	sessionRepo := database.NewSessionRepo(db)
 	groupRepo := database.NewGroupRepo(db)
+	taskRepo := database.NewTaskRepo(db)
 
-	authService := app.New(sessionRepo, userRepo)
+	authService := app.NewAuthLogic(sessionRepo, userRepo)
+	taskLogic := app.NewTaskLogic(taskRepo, userRepo)
 
 	goviewConfig := goview.DefaultConfig
 	if os.Getenv("ENVIRONMENT") != "prod" {
@@ -69,7 +71,7 @@ func Run() {
 
 	controllers.NewAuthController(router, protectedRouter, authService, secureCookies)
 	controllers.NewGroupController(protectedRouter, groupRepo, userRepo)
-	controllers.NewTaskController(protectedRouter, userRepo)
+	controllers.NewTaskController(protectedRouter, userRepo, taskLogic)
 
 	port := "8080"
 	portEnv := os.Getenv("PORT")

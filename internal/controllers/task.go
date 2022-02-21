@@ -6,18 +6,25 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type TaskController struct {
-	userRepo *database.UserRepo
+	userRepo  *database.UserRepo
+	taskLogic *app.TaskLogic
 }
 
-func NewTaskController(protectedRouter gin.IRouter, userRepo *database.UserRepo) *TaskController {
-	handler := &TaskController{userRepo: userRepo}
+func NewTaskController(
+	protectedRouter gin.IRouter,
+	userRepo *database.UserRepo,
+	taskLogic *app.TaskLogic,
+) *TaskController {
+	handler := &TaskController{userRepo: userRepo, taskLogic: taskLogic}
 
 	protectedRouter.GET("/", handler.GetIndex())
 
 	protectedRouter.GET("/task/create", handler.GetCreateTask())
+	protectedRouter.POST("/task/create", handler.PostCreateTask())
 
 	return handler
 }
@@ -30,32 +37,24 @@ func (c *TaskController) GetIndex() gin.HandlerFunc {
 			log.Printf("Failed to get user with ID '%s': %s\n", userID, err)
 			HTML(ctx, http.StatusInternalServerError, "pages/index", gin.H{
 				"title": "Taskeroo",
+				"alert": "",
 			})
 			return
 		}
+		if user.GroupID == nil {
+			log.Printf("User=%s is not in a group, so can't retrieve tasks\n", userID)
+			HTML(ctx, http.StatusBadRequest, "pages/index", gin.H{
+				"title": "Taskeroo",
+			})
+			return
+		}
+
+		tasks, err := c.taskLogic.GetForGroup(ctx.Request.Context(), userID, *user.GroupID)
+
 		HTML(ctx, http.StatusOK, "pages/index", gin.H{
 			"title":   "Taskeroo",
 			"groupID": user.GroupID,
-			"tasks": []app.Task{
-				{
-					ID:          "1234",
-					GroupID:     "1234",
-					Title:       "Vask 30 grader",
-					Description: "Vask tøj på 30 grader, hver uge",
-				},
-				{
-					ID:          "1235",
-					GroupID:     "1235",
-					Title:       "Vask 60 grader",
-					Description: "Vask tøj på 60 grader, hver uge",
-				},
-				{
-					ID:          "1236",
-					GroupID:     "1236",
-					Title:       "Støvsug ovenpå",
-					Description: "Støvsug alle værelser ovenpå: Badeværelse, soveværelse, gæsteværelse, kontor.",
-				},
-			},
+			"tasks":   tasks,
 		})
 	}
 }
@@ -65,5 +64,66 @@ func (c *TaskController) GetCreateTask() gin.HandlerFunc {
 		HTML(ctx, http.StatusOK, "pages/create-task", gin.H{
 			"title": "Opret opgave",
 		})
+	}
+}
+
+func (c *TaskController) PostCreateTask() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		title := ctx.PostForm("title")
+		description := ctx.PostForm("description")
+		intervalSize := ctx.PostForm("intervalSize")
+		intervalUnit := ctx.PostForm("intervalUnit")
+
+		if title == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Titel skal udfyldes",
+			})
+			return
+		}
+		if description == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Beskrivelse skal udfyldes",
+			})
+			return
+		}
+		if intervalUnit == "" {
+			HTML(ctx, http.StatusBadRequest, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Opgavens hyppighed skal udfyldes",
+			})
+			return
+		}
+
+		formattedIntervalSize := 0
+		if intervalSize != "" {
+			var err error
+			formattedIntervalSize, err = strconv.Atoi(intervalSize)
+			if err != nil {
+				HTML(ctx, http.StatusBadRequest, "pages/create-test", gin.H{
+					"title": "Opret opgave",
+					"error": "Opgavens hyppighed skal defineres i tal og engangsopgave, dag, uge, måned.",
+				})
+				return
+			}
+		}
+
+		userID := ctx.GetString(KeyUserID)
+
+		var err error
+		_, err = c.taskLogic.Create(ctx.Request.Context(), userID, app.NewTask{
+			Title:        title,
+			Description:  description,
+			IntervalSize: formattedIntervalSize,
+			IntervalUnit: intervalUnit,
+		})
+		if err != nil {
+			log.Printf("Failed to create task: %s\n", err)
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		ctx.Redirect(http.StatusFound, "/")
 	}
 }

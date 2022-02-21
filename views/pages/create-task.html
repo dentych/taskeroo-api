@@ -1,6 +1,6 @@
 {{ define "content" }}
 <div class="w-full mt-8 w-3/4 mx-auto">
-  <form class="flex flex-col" action="/group/create" method="post">
+  <form class="flex flex-col" action="/task/create" method="post">
     <h1 class="text-center text-2xl font-light">Opret opgave</h1>
 
     <p class="text-gray-600 ml-1 mt-8">Opgavens titel</p>
@@ -13,8 +13,8 @@
 
     <p class="text-gray-600 ml-1 mt-8">Hvor ofte skal opgaven udføres?</p>
     <div class="flex">
-      <input type="number" name="intervalUnit" placeholder="0" class="focus:outline-none border rounded p-1 w-1/5">
-      <select name="intervalType" class="focus:outline-none grow ml-2 bg-white border rounded">
+      <input type="number" name="intervalSize" placeholder="0" class="focus:outline-none border rounded p-1 w-1/5">
+      <select name="intervalUnit" class="focus:outline-none grow ml-2 bg-white border rounded">
         <option value="onetime">Engangsopgave</option>
         <option value="day">Dag</option>
         <option value="week">Uge</option>

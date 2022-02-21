@@ -11,19 +11,19 @@ import (
 	"time"
 )
 
-type Auth struct {
+type AuthLogic struct {
 	sessionRepo *database.SessionRepo
 	userRepo    *database.UserRepo
 }
 
-func New(sessionRepo *database.SessionRepo, userRepo *database.UserRepo) *Auth {
-	return &Auth{
+func NewAuthLogic(sessionRepo *database.SessionRepo, userRepo *database.UserRepo) *AuthLogic {
+	return &AuthLogic{
 		sessionRepo: sessionRepo,
 		userRepo:    userRepo,
 	}
 }
 
-func (a *Auth) IsAuthenticated(ctx context.Context, userID string, session string) (bool, error) {
+func (a *AuthLogic) IsAuthenticated(ctx context.Context, userID string, session string) (bool, error) {
 	_, err := a.sessionRepo.Get(ctx, userID, session)
 	if err != nil {
 		return false, err
@@ -37,18 +37,18 @@ type UserSession struct {
 	Session string
 }
 
-func (a *Auth) Login(ctx context.Context, email string, password string) (UserSession, error) {
+func (a *AuthLogic) Login(ctx context.Context, email string, password string) (UserSession, error) {
 	user, err := a.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return UserSession{}, internalerrors.InvalidEmailOrPassword
+			return UserSession{}, internalerrors.ErrInvalidEmailOrPassword
 		}
 		return UserSession{}, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password))
 	if err != nil {
-		return UserSession{}, internalerrors.InvalidEmailOrPassword
+		return UserSession{}, internalerrors.ErrInvalidEmailOrPassword
 	}
 
 	session := uuid.NewString()
@@ -64,7 +64,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (UserSe
 	return UserSession{UserID: user.UserID, Session: session}, nil
 }
 
-func (a *Auth) Register(ctx context.Context, email string, password string) error {
+func (a *AuthLogic) Register(ctx context.Context, email string, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 0)
 	if err != nil {
 		return err

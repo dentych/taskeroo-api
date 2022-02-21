@@ -10,14 +10,14 @@ import (
 )
 
 type AuthController struct {
-	authService   *app.Auth
+	authService   *app.AuthLogic
 	secureCookies bool
 }
 
 func NewAuthController(
 	router gin.IRouter,
 	protectedRouter gin.IRouter,
-	authService *app.Auth,
+	authService *app.AuthLogic,
 	secureCookies bool,
 ) *AuthController {
 	handler := &AuthController{authService: authService, secureCookies: secureCookies}
@@ -34,7 +34,7 @@ func NewAuthController(
 	return handler
 }
 
-func AuthMiddleware(authService *app.Auth) gin.HandlerFunc {
+func AuthMiddleware(authService *app.AuthLogic) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userID, err := ctx.Cookie(CookieKeyUserID)
 		if err != nil || userID == "" {
@@ -83,7 +83,7 @@ func (c *AuthController) PostLogin() gin.HandlerFunc {
 
 		userSession, err := c.authService.Login(ctx.Request.Context(), email, password)
 		if err != nil {
-			if errors.Is(err, internalerrors.InvalidEmailOrPassword) {
+			if errors.Is(err, internalerrors.ErrInvalidEmailOrPassword) {
 				HTML(ctx, http.StatusOK, "pages/login", gin.H{
 					"title": "Login",
 					"error": "Email eller password ugyldig",
