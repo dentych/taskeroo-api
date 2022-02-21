@@ -69,10 +69,51 @@ func (c *TaskController) GetIndex() gin.HandlerFunc {
 	}
 }
 
+type Member struct {
+	ID   string
+	Name string
+}
+
 func (c *TaskController) GetCreateTask() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		userID := ctx.GetString(KeyUserID)
+		user, err := c.userRepo.Get(ctx, userID)
+		if err != nil {
+			log.Printf("Failed to get information on user=%s: %s\n", userID, err)
+			HTML(ctx, http.StatusInternalServerError, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Kunne ikke hente brugerinformation. Prøv igen om lidt.",
+			})
+			return
+		}
+		if user.GroupID == nil {
+			HTML(ctx, http.StatusInternalServerError, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Bruger er ikke i en gruppe",
+			})
+			return
+		}
+		users, err := c.userRepo.GetByGroup(ctx, *user.GroupID)
+		if err != nil {
+			log.Printf("Failed to get information on user=%s: %s\n", userID, err)
+			HTML(ctx, http.StatusInternalServerError, "pages/create-task", gin.H{
+				"title": "Opret opgave",
+				"error": "Kunne ikke hente information om medlemmer i gruppen. Prøv igen om lidt.",
+			})
+			return
+		}
+
+		var members []Member
+		for _, member := range users {
+			members = append(members, Member{
+				ID:   member.ID,
+				Name: member.Name,
+			})
+		}
+
 		HTML(ctx, http.StatusOK, "pages/create-task", gin.H{
-			"title": "Opret opgave",
+			"title":   "Opret opgave",
+			"members": members,
 		})
 	}
 }
@@ -83,6 +124,8 @@ func (c *TaskController) PostCreateTask() gin.HandlerFunc {
 		description := ctx.PostForm("description")
 		intervalSize := ctx.PostForm("intervalSize")
 		intervalUnit := ctx.PostForm("intervalUnit")
+		assignee := ctx.PostForm("assignee")
+		rotatingAssignee := ctx.PostForm("rotatingAssignee")
 
 		if title == "" {
 			HTML(ctx, http.StatusBadRequest, "pages/create-task", gin.H{
@@ -119,14 +162,23 @@ func (c *TaskController) PostCreateTask() gin.HandlerFunc {
 			}
 		}
 
+		var assignedPerson *string
+		if assignee != "" {
+			assignedPerson = &assignee
+		}
+
+		formattedRotatingAssignee, _ := strconv.ParseBool(rotatingAssignee)
+
 		userID := ctx.GetString(KeyUserID)
 
 		var err error
 		_, err = c.taskLogic.Create(ctx.Request.Context(), userID, app.NewTask{
-			Title:        title,
-			Description:  description,
-			IntervalSize: formattedIntervalSize,
-			IntervalUnit: intervalUnit,
+			Title:            title,
+			Description:      description,
+			Assignee:         assignedPerson,
+			RotatingAssignee: formattedRotatingAssignee,
+			IntervalSize:     formattedIntervalSize,
+			IntervalUnit:     intervalUnit,
 		})
 		if err != nil {
 			log.Printf("Failed to create task: %s\n", err)
@@ -186,6 +238,8 @@ func (c *TaskController) PostEditTask() gin.HandlerFunc {
 		description := ctx.PostForm("description")
 		intervalSize := ctx.PostForm("intervalSize")
 		intervalUnit := ctx.PostForm("intervalUnit")
+		assignee := ctx.PostForm("assignee")
+		rotatingAssignee := ctx.PostForm("rotatingAssignee")
 
 		formattedIntervalSize, err := strconv.Atoi(intervalSize)
 		if err != nil {
@@ -225,11 +279,20 @@ func (c *TaskController) PostEditTask() gin.HandlerFunc {
 			return
 		}
 
+		var assignedPerson *string
+		if assignee != "" {
+			assignedPerson = &assignee
+		}
+
+		formattedRotatingAssignee, _ := strconv.ParseBool(rotatingAssignee)
+
 		err = c.taskLogic.Update(ctx, userID, taskID, app.NewTask{
-			Title:        title,
-			Description:  description,
-			IntervalSize: formattedIntervalSize,
-			IntervalUnit: intervalUnit,
+			Title:            title,
+			Description:      description,
+			Assignee:         assignedPerson,
+			RotatingAssignee: formattedRotatingAssignee,
+			IntervalSize:     formattedIntervalSize,
+			IntervalUnit:     intervalUnit,
 		})
 		if err != nil {
 			log.Printf("Failed to get task=%s for user=%s: %s\n", taskID, userID, err)

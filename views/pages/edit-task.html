@@ -43,6 +43,20 @@
       </select>
     </div>
 
+    <p class="text-gray-600 ml-1 mt-8">Tildelt person</p>
+    <select name="assignee" class="focus:outline-none grow h-8 bg-white border rounded">
+      <option value=""></option>
+      {{ range .members }}
+      <option value="{{ .ID }}">{{ .Name }}</option>
+      {{ end }}
+    </select>
+
+    <div class="flex mt-8 items-center">
+      <input type="checkbox" name="rotatingAssignee" class="flex-none h-5 w-5 appearance-none border border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 align-top bg-no-repeat bg-center bg-contain float-left cursor-pointer">
+      <p class="ml-2">Roter tildeling af medlemmer</p>
+    </div>
+    <p class="text-sm mt-2">Rotering af medlemmer tildeler en ny person fra gruppen, hver gang opgaven er udført.</p>
+
     <button type="submit" class="bg-pink-400 px-1 py-2 rounded mt-8">Opdater opgave</button>
     <a onclick="history.back()" class="bg-gray-300 px-1 py-2 rounded mt-4 text-center">Tilbage</a>
   </form>

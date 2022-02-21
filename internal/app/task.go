@@ -40,10 +40,12 @@ func NewTaskLogic(taskRepo *database.TaskRepo, userRepo *database.UserRepo) *Tas
 }
 
 type NewTask struct {
-	Title        string
-	Description  string
-	IntervalSize int
-	IntervalUnit string
+	Title            string
+	Description      string
+	Assignee         *string
+	RotatingAssignee bool
+	IntervalSize     int
+	IntervalUnit     string
 }
 
 func (t *TaskLogic) Create(ctx context.Context, userID string, newTask NewTask) (Task, error) {
@@ -57,15 +59,17 @@ func (t *TaskLogic) Create(ctx context.Context, userID string, newTask NewTask) 
 
 	taskID := uuid.NewString()
 	task := database.Task{
-		ID:           taskID,
-		Title:        newTask.Title,
-		Description:  newTask.Description,
-		GroupID:      *user.GroupID,
-		IntervalSize: newTask.IntervalSize,
-		IntervalUnit: newTask.IntervalUnit,
-		NextDueDate:  calculateNextDueDate(newTask.IntervalUnit, newTask.IntervalSize),
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		ID:               taskID,
+		Title:            newTask.Title,
+		Description:      newTask.Description,
+		GroupID:          *user.GroupID,
+		Assignee:         newTask.Assignee,
+		RotatingAssignee: newTask.RotatingAssignee,
+		IntervalSize:     newTask.IntervalSize,
+		IntervalUnit:     newTask.IntervalUnit,
+		NextDueDate:      calculateNextDueDate(newTask.IntervalUnit, newTask.IntervalSize),
+		CreatedAt:        time.Now(),
+		UpdatedAt:        time.Now(),
 	}
 	err = t.taskRepo.Create(ctx, task)
 	if err != nil {
@@ -199,14 +203,16 @@ func (t *TaskLogic) Update(ctx *gin.Context, userID string, taskID string, editT
 	}
 
 	err = t.taskRepo.Update(ctx, database.Task{
-		ID:           taskID,
-		Title:        editTask.Title,
-		Description:  editTask.Description,
-		GroupID:      *user.GroupID,
-		IntervalSize: editTask.IntervalSize,
-		IntervalUnit: editTask.IntervalUnit,
-		NextDueDate:  calculateNextDueDate(editTask.IntervalUnit, editTask.IntervalSize),
-		UpdatedAt:    time.Now(),
+		ID:               taskID,
+		Title:            editTask.Title,
+		Description:      editTask.Description,
+		GroupID:          *user.GroupID,
+		Assignee:         editTask.Assignee,
+		RotatingAssignee: editTask.RotatingAssignee,
+		IntervalSize:     editTask.IntervalSize,
+		IntervalUnit:     editTask.IntervalUnit,
+		NextDueDate:      calculateNextDueDate(editTask.IntervalUnit, editTask.IntervalSize),
+		UpdatedAt:        time.Now(),
 	})
 	if err != nil {
 		return err
