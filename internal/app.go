@@ -72,7 +72,7 @@ func Run() {
 	telegramLogic := app.NewTelegramLogic(telegramRepo, telegramClient)
 	authService := app.NewAuthLogic(sessionRepo, userRepo, groupRepo)
 	notificationLogic := app.NewNotificationLogic(notificationRepo, userRepo, groupRepo, telegramRepo, telegramLogic)
-	taskLogic := app.NewTaskLogic(taskRepo, userRepo, notificationLogic)
+	taskLogic := app.NewTaskLogic(taskRepo, userRepo, groupRepo, notificationLogic)
 
 	goviewConfig := goview.DefaultConfig
 	if os.Getenv("ENVIRONMENT") != "prod" {
