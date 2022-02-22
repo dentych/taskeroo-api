@@ -15,7 +15,7 @@ type Group struct {
 	Name        string    `gorm:"not null;"`
 	OwnerUserID string    `gorm:"not null;"`
 	CreatedAt   time.Time `gorm:"not null;default: current_timestamp;"`
-	DeletedAt   *time.Time
+	DeletedAt   gorm.DeletedAt
 }
 
 func NewGroupRepo(db *gorm.DB) *GroupRepo {

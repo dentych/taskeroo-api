@@ -22,7 +22,7 @@ type Task struct {
 	NextDueDate      time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
-	DeletedAt        *time.Time
+	DeletedAt        gorm.DeletedAt
 }
 
 func NewTaskRepo(db *gorm.DB) *TaskRepo {
