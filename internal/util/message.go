@@ -17,6 +17,9 @@ func CommonTaskMessage(taskTitles []string) string {
 		buf.WriteString("\n")
 	}
 
+	buf.WriteRune('\n')
+	buf.WriteString("https://taskeroo.tychsen.me")
+
 	return buf.String()
 }
 
@@ -32,6 +35,9 @@ func AssignedTasksMessage(taskTitles []string) string {
 		buf.WriteString(title)
 		buf.WriteString("\n")
 	}
+
+	buf.WriteRune('\n')
+	buf.WriteString("https://taskeroo.tychsen.me")
 
 	return buf.String()
 }
