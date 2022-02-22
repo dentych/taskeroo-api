@@ -15,7 +15,7 @@ type TelegramController struct {
 func NewTelegramController(protectedRouter gin.IRouter, telegramLogic *app.TelegramLogic) *TelegramController {
 	handler := &TelegramController{telegramLogic: telegramLogic}
 
-	protectedRouter.GET("/telegram-connect/:connectID", handler.GetTelegramConnect())
+	protectedRouter.GET("/telegram/connect/:connectID", handler.GetTelegramConnect())
 
 	return handler
 }

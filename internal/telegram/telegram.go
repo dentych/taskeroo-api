@@ -143,7 +143,7 @@ func (t *Telegram) handleConnect(msg Message) error {
 	err = t.sendMessage(msg.From.ID, "For at forbinde din Telegram konto med din Taskeroo konto, "+
 		"skal du gøre følgende:\n\n"+
 		"1. Log ind på https://taskeroo.tychsen.me, hvis du ikke er i forvejen\n"+
-		"2. Følg dette link: "+fmt.Sprintf("https://taskeroo.tychsen.me/telegram-connect/%s", connectID))
+		"2. Følg dette link: "+fmt.Sprintf("https://taskeroo.tychsen.me/telegram/connect/%s", connectID))
 	if err != nil {
 		return err
 	}
