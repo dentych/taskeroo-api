@@ -15,8 +15,8 @@ type TelegramLogic struct {
 	telegramClient *telegram.Telegram
 }
 
-func NewTelegramLogic(telegramRepo *database.TelegramRepo) *TelegramLogic {
-	return &TelegramLogic{telegramRepo: telegramRepo}
+func NewTelegramLogic(telegramRepo *database.TelegramRepo, telegramClient *telegram.Telegram) *TelegramLogic {
+	return &TelegramLogic{telegramRepo: telegramRepo, telegramClient: telegramClient}
 }
 
 func (l *TelegramLogic) Connect(ctx context.Context, userID string, connectID string) error {
@@ -38,7 +38,12 @@ func (l *TelegramLogic) Connect(ctx context.Context, userID string, connectID st
 		return err
 	}
 
-	return l.telegramRepo.SetUserID(ctx, connectID, userID)
+	err = l.telegramRepo.SetUserID(ctx, connectID, userID)
+	if err != nil {
+		return err
+	}
+
+	return l.telegramClient.SendMessage(ctx, tele.TelegramUserID, "Din Taskeroo konto er nu forbundet med Telegram!")
 }
 
 func (l *TelegramLogic) SendMessage(ctx context.Context, userID string, msg string) error {
