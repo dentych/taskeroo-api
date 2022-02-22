@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"github.com/dentych/taskeroo/internal/app"
 	"github.com/dentych/taskeroo/internal/database"
 	"github.com/gin-gonic/gin"
@@ -379,7 +380,7 @@ func (c *TaskController) PostDebugNotifyDueToday() gin.HandlerFunc {
 			return
 		}
 		go func() {
-			err := c.taskLogic.NotifyTasksDueToday(ctx.Request.Context())
+			err := c.taskLogic.NotifyTasksDueToday(context.Background())
 			if err != nil {
 				log.Printf("ERROR: Task controller: Failed to run debug notify due today: %s", err)
 			}
