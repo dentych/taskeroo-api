@@ -1,41 +1,12 @@
 {{ define "content" }}
 <div class="mt-8 w-3/4 mx-auto flex flex-col">
-  <div class="text-center">
-    {{ if .groupOwner }}
-    <p>Discord webhook URL er sat op 👍</p>
-    <a href="/notifications/group-setup" class="mt-2 text-violet-500">Opsæt ny Discord webhook URL</a>
-    {{ end }}
-  </div>
-
-  <p class="mt-12 font-semibold text-center">Dit Discord brugernavn</p>
-  <p class="mt-1 text-sm text-center">Hvis du ønsker at blive tagget i Discord, når du har opgaver at udføre, så bedes
-    du skrive dit Discord ID <span class="text-red-600">(IKKE brugernavn)</span> herunder. Du kan finde dit Discord
-  ID, ved at skrive \@ditbrugernavn i Discord kanalen.</p>
-  <input type="text" id="username" class="mt-4 focus:outline-none border p-1 rounded"
-         placeholder="Discord brugernavn" value="{{ .discordUsername }}">
-  <p class="text-gray-400 text-sm text-center">Eksempel: FiskeManden#1428</p>
-  <button type="submit" class="bg-pink-400 px-1 py-2 rounded mt-4"
-          onclick='updateDiscordUsername()'>Opdater Discord brugernavn
-  </button>
+  <h1 class="text-center text-2xl font-light">Notifikationsindstillinger</h1>
+  {{ if .telegramActive }}
+  <p class="mt-8 text-center">Telegram er <span class="font-semibold">forbundet</span> 👍</p>
+  <a href="/telegram-disconnect" class="text-violet-500 text-center">Afbryd forbindelse</a>
+  {{ else }}
+  <p class="mt-8 text-center">Telegram er <span class="font-semibold">ikke forbundet.</span></p>
+  <p class="mt-1 text-sm text-center">Forbind med <a href="https://t.me/TaskerooBot" class="text-violet-500">TaskerooBot</a></p>
+  {{ end }}
 </div>
-
-<script>
-  function updateDiscordUsername() {
-    let username = document.getElementById("username")
-    console.log(username)
-    console.log(username.innerHTML)
-    console.log(username.innerText)
-    fetch("/notifications", {
-      method: "POST",
-      body: "username=" + username.value,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      }
-    }).then(resp => {
-      if (resp.ok) {
-        location.reload()
-      }
-    })
-  }
-</script>
 {{ end }}

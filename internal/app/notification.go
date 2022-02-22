@@ -2,54 +2,36 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/dentych/taskeroo/internal/database"
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
+	"gorm.io/gorm"
 	"io"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type NotificationLogic struct {
 	notificationRepo *database.NotificationRepo
 	userRepo         *database.UserRepo
 	groupRepo        *database.GroupRepo
+	telegramRepo     *database.TelegramRepo
 }
 
 func NewNotificationLogic(
 	notificationRepo *database.NotificationRepo,
 	userRepo *database.UserRepo,
 	groupRepo *database.GroupRepo,
+	telegramRepo *database.TelegramRepo,
 ) *NotificationLogic {
-	return &NotificationLogic{notificationRepo: notificationRepo, userRepo: userRepo, groupRepo: groupRepo}
-}
-
-func (n *NotificationLogic) SetupGroupDiscord(ctx context.Context, userID string, webhook string) error {
-	user, err := n.userRepo.Get(ctx, userID)
-	if err != nil {
-		return err
+	return &NotificationLogic{
+		notificationRepo: notificationRepo,
+		userRepo:         userRepo,
+		groupRepo:        groupRepo,
+		telegramRepo:     telegramRepo,
 	}
-
-	if user.GroupID == nil {
-		return internalerrors.ErrUserNotInGroup
-	}
-
-	group, err := n.groupRepo.Get(ctx, *user.GroupID)
-	if err != nil {
-		return err
-	}
-
-	if user.ID != group.OwnerUserID {
-		return internalerrors.ErrUserNotOwner
-	}
-
-	return n.notificationRepo.CreateDiscord(ctx, database.GroupDiscord{
-		GroupID:   group.ID,
-		Webhook:   webhook,
-		CreatedAt: time.Now(),
-	})
 }
 
 func (n *NotificationLogic) GetNotificationInfo(ctx context.Context, userID string) (*NotificationInfo, error) {
@@ -70,34 +52,18 @@ func (n *NotificationLogic) GetNotificationInfo(ctx context.Context, userID stri
 
 	if user.ID == group.OwnerUserID {
 		output.GroupOwner = true
-		discord, err := n.notificationRepo.GetGroupDiscord(ctx, group.ID)
-		if err != nil {
-			return nil, err
-		}
-		if discord != nil {
-			output.DiscordActive = true
-		}
 	}
 
-	username, err := n.notificationRepo.GetDiscordUsername(ctx, userID)
-	if err != nil {
+	dbTelegram, err := n.telegramRepo.GetByUserID(ctx, userID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
-	if username != nil {
-		output.Username = username.DiscordID
+	if dbTelegram != nil {
+		output.TelegramActive = true
 	}
 
 	return output, nil
-}
-
-func (n *NotificationLogic) SetupDiscordUsername(ctx context.Context, userID string, discordUsername string) error {
-	err := n.notificationRepo.CreateDiscordUsername(ctx, userID, discordUsername)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (n *NotificationLogic) SendNotification(ctx context.Context, userID string, msg string) error {
@@ -142,7 +108,6 @@ func (n *NotificationLogic) SendNotification(ctx context.Context, userID string,
 }
 
 type NotificationInfo struct {
-	GroupOwner    bool
-	DiscordActive bool
-	Username      string
+	GroupOwner     bool
+	TelegramActive bool
 }

@@ -70,7 +70,7 @@ func Run() {
 
 	authService := app.NewAuthLogic(sessionRepo, userRepo, groupRepo)
 	taskLogic := app.NewTaskLogic(taskRepo, userRepo)
-	notificationLogic := app.NewNotificationLogic(notificationRepo, userRepo, groupRepo)
+	notificationLogic := app.NewNotificationLogic(notificationRepo, userRepo, groupRepo, telegramRepo)
 	telegramLogic := app.NewTelegramLogic(telegramRepo)
 
 	goviewConfig := goview.DefaultConfig
