@@ -54,6 +54,8 @@ func (t *Telegram) loop() {
 
 		if resp.StatusCode >= 300 {
 			log.Printf("Telegram API answered with non-successful HTTP status code: %d\n", resp.StatusCode)
+			body, _ := io.ReadAll(resp.Body)
+			log.Printf("Response body: %s\n", string(body))
 			time.Sleep(5 * time.Second)
 			continue
 		}
