@@ -2,9 +2,11 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/dentych/taskeroo/internal/database"
 	"github.com/dentych/taskeroo/internal/telegram"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -49,6 +51,10 @@ func (l *TelegramLogic) Connect(ctx context.Context, userID string, connectID st
 func (l *TelegramLogic) SendMessage(ctx context.Context, userID string, msg string) error {
 	dbTelegram, err := l.telegramRepo.GetByUserID(ctx, userID)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Skip users who have not setup Telegram connection
+			return nil
+		}
 		return err
 	}
 
