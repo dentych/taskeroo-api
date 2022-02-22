@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/dentych/taskeroo/internal/database"
 	"github.com/google/uuid"
+	"go.uber.org/ratelimit"
 	"io"
 	"log"
 	"net/http"
@@ -41,7 +42,9 @@ func (t *Telegram) Start() error {
 }
 
 func (t *Telegram) loop() {
+	rl := ratelimit.New(1)
 	for {
+		rl.Take()
 		resp, err := t.client.Get(fmt.Sprintf("%s/getUpdates?offset=%d&timeout=25", t.baseUrl, t.lastID+1))
 		if err != nil {
 			log.Printf("Failed to get updates from Telegram API: %s\n", err)
