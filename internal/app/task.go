@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"github.com/dentych/taskeroo/internal/database"
 	internalerrors "github.com/dentych/taskeroo/internal/errors"
+	"github.com/dentych/taskeroo/internal/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"log"
 	"sort"
 	"strings"
 	"time"
@@ -15,6 +17,7 @@ import (
 type TaskLogic struct {
 	taskRepo          *database.TaskRepo
 	userRepo          *database.UserRepo
+	groupRepo         *database.GroupRepo
 	notificationLogic *NotificationLogic
 }
 
@@ -40,9 +43,10 @@ type Task struct {
 func NewTaskLogic(
 	taskRepo *database.TaskRepo,
 	userRepo *database.UserRepo,
+	groupRepo *database.GroupRepo,
 	notificationLogic *NotificationLogic,
 ) *TaskLogic {
-	return &TaskLogic{taskRepo: taskRepo, userRepo: userRepo, notificationLogic: notificationLogic}
+	return &TaskLogic{taskRepo: taskRepo, userRepo: userRepo, groupRepo: groupRepo, notificationLogic: notificationLogic}
 }
 
 type NewTask struct {
@@ -94,7 +98,7 @@ func (t *TaskLogic) Create(ctx context.Context, userID string, newTask NewTask) 
 	}, nil
 }
 
-func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID string) ([]Task, error) {
+func (t *TaskLogic) GetAllForUserIDAndGroupID(ctx context.Context, userID string, groupID string) ([]Task, error) {
 	user, err := t.userRepo.Get(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -104,6 +108,15 @@ func (t *TaskLogic) GetForGroup(ctx context.Context, userID string, groupID stri
 		return nil, internalerrors.ErrUserNotMemberOfGroup
 	}
 
+	tasks, err := t.GetAllForGroup(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
+func (t *TaskLogic) GetAllForGroup(ctx context.Context, groupID string) ([]Task, error) {
 	tasks, err := t.taskRepo.GetAllForGroup(ctx, groupID)
 	if err != nil {
 		return nil, err
@@ -297,6 +310,52 @@ func (t *TaskLogic) Complete(ctx context.Context, userID string, taskID string) 
 		return err
 	}
 
+	return nil
+}
+
+func (t *TaskLogic) NotifyTasksDueToday(ctx context.Context) error {
+	groups, err := t.groupRepo.GetAll(ctx)
+	if err != nil {
+		log.Printf("ERROR: NotifyTasksDueToday: Failed to get all groups: %s", err)
+		return err
+	}
+	for _, group := range groups {
+		var tasksForAll []string
+		var assignedTasks map[string][]string
+		tasks, err := t.GetAllForGroup(ctx, group.ID)
+		if err != nil {
+			log.Printf("ERROR: NotifyTasksDueToday: Failed to get all tasks for group=%s: %s", group.ID, err)
+			return err
+		}
+
+		for _, task := range tasks {
+			if task.DaysLeft > 0 {
+				continue
+			}
+
+			if task.Assignee == nil {
+				tasksForAll = append(tasksForAll, task.Title)
+			}
+
+			assignedTasks[*task.Assignee] = append(assignedTasks[*task.Assignee], task.Title)
+		}
+
+		msg := util.CommonTaskMessage(tasksForAll)
+		err = t.notificationLogic.NotifyAllInGroup(ctx, group.ID, msg)
+		if err != nil {
+			log.Printf("ERROR: NotifyTasksDueToday: Failed to notify all in group=%s: %s", group.ID, err)
+			// Log but continue
+		}
+
+		for assignee, titles := range assignedTasks {
+			msg = util.AssignedTasksMessage(titles)
+			err = t.notificationLogic.SendNotification(ctx, assignee, msg)
+			if err != nil {
+				log.Printf("ERROR: NotifyTasksDueToday: Failed to notify user=%s in group=%s: %s", assignee, group.ID, err)
+				continue
+			}
+		}
+	}
 	return nil
 }
 

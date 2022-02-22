@@ -33,6 +33,8 @@ func NewTaskController(
 
 	protectedRouter.POST("/task/:id/complete", handler.PostTaskComplete())
 
+	protectedRouter.POST("/task/debug/notify-due-today", handler.PostDebugNotifyDueToday())
+
 	return handler
 }
 
@@ -56,7 +58,7 @@ func (c *TaskController) GetIndex() gin.HandlerFunc {
 			return
 		}
 
-		tasks, err := c.taskLogic.GetForGroup(ctx.Request.Context(), userID, *user.GroupID)
+		tasks, err := c.taskLogic.GetAllForUserIDAndGroupID(ctx.Request.Context(), userID, *user.GroupID)
 
 		HTML(ctx, http.StatusOK, "pages/index", gin.H{
 			"title":   "Taskeroo",
@@ -365,5 +367,23 @@ func (c *TaskController) PostTaskComplete() gin.HandlerFunc {
 		}
 
 		ctx.Redirect(http.StatusFound, "/")
+	}
+}
+
+func (c *TaskController) PostDebugNotifyDueToday() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		secret := ctx.GetHeader("Authorization")
+		if secret != "l124j1f98129jc-0wef82345jk2359u08cds8" {
+			ctx.Status(http.StatusUnauthorized)
+			return
+		}
+		go func() {
+			err := c.taskLogic.NotifyTasksDueToday(ctx.Request.Context())
+			if err != nil {
+				log.Printf("ERROR: Task controller: Failed to run debug notify due today: %s", err)
+			}
+		}()
+
+		ctx.Status(http.StatusOK)
 	}
 }

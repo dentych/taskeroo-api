@@ -35,3 +35,13 @@ func (r *GroupRepo) Get(ctx context.Context, groupID string) (*Group, error) {
 
 	return &group, nil
 }
+
+func (r *GroupRepo) GetAll(ctx context.Context) ([]Group, error) {
+	var groups []Group
+	err := r.db.WithContext(ctx).Find(&groups).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return groups, nil
+}
