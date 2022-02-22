@@ -321,7 +321,7 @@ func (t *TaskLogic) NotifyTasksDueToday(ctx context.Context) error {
 	}
 	for _, group := range groups {
 		var tasksForAll []string
-		var assignedTasks map[string][]string
+		assignedTasks := map[string][]string{}
 		tasks, err := t.GetAllForGroup(ctx, group.ID)
 		if err != nil {
 			log.Printf("ERROR: NotifyTasksDueToday: Failed to get all tasks for group=%s: %s", group.ID, err)
