@@ -335,9 +335,9 @@ func (t *TaskLogic) NotifyTasksDueToday(ctx context.Context) error {
 
 			if task.Assignee == nil {
 				tasksForAll = append(tasksForAll, task.Title)
+			} else {
+				assignedTasks[*task.Assignee] = append(assignedTasks[*task.Assignee], task.Title)
 			}
-
-			assignedTasks[*task.Assignee] = append(assignedTasks[*task.Assignee], task.Title)
 		}
 
 		if len(tasksForAll) > 0 {
