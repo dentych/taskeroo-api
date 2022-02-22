@@ -43,12 +43,14 @@ func AuthMiddleware(authService *app.AuthLogic) gin.HandlerFunc {
 		if err != nil || userID == "" {
 			clearCookies(ctx)
 			ctx.Redirect(http.StatusFound, "/login")
+			ctx.Abort()
 			return
 		}
 		session, err := ctx.Cookie(CookieKeySession)
 		if err != nil || session == "" {
 			clearCookies(ctx)
 			ctx.Redirect(http.StatusFound, "/login")
+			ctx.Abort()
 			return
 		}
 
@@ -57,16 +59,19 @@ func AuthMiddleware(authService *app.AuthLogic) gin.HandlerFunc {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				clearCookies(ctx)
 				ctx.Redirect(http.StatusFound, "/login")
+				ctx.Abort()
 				return
 			}
 			log.Printf("Failed to check if user is authenticated: %s\n", err)
 			HTML(ctx, http.StatusInternalServerError, "pages/index", nil)
+			ctx.Abort()
 			return
 		}
 
 		if !authenticated {
 			clearCookies(ctx)
 			ctx.Redirect(http.StatusFound, "/login")
+			ctx.Abort()
 			return
 		}
 
