@@ -25,7 +25,7 @@ func (l *TelegramLogic) Connect(ctx context.Context, userID string, connectID st
 		return err
 	}
 
-	if tele.UserID != nil {
+	if tele.UserID != nil && *tele.UserID != "" {
 		return ErrNotValid
 	}
 
