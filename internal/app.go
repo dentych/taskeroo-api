@@ -69,10 +69,10 @@ func Run() {
 	telegramRepo := database.NewTelegramRepo(db)
 	telegramClient := telegram.NewTelegram(telegramRepo, os.Getenv("TELEGRAM_TOKEN"))
 
-	authService := app.NewAuthLogic(sessionRepo, userRepo, groupRepo)
-	taskLogic := app.NewTaskLogic(taskRepo, userRepo)
-	notificationLogic := app.NewNotificationLogic(notificationRepo, userRepo, groupRepo, telegramRepo)
 	telegramLogic := app.NewTelegramLogic(telegramRepo, telegramClient)
+	authService := app.NewAuthLogic(sessionRepo, userRepo, groupRepo)
+	notificationLogic := app.NewNotificationLogic(notificationRepo, userRepo, groupRepo, telegramRepo, telegramLogic)
+	taskLogic := app.NewTaskLogic(taskRepo, userRepo, notificationLogic)
 
 	goviewConfig := goview.DefaultConfig
 	if os.Getenv("ENVIRONMENT") != "prod" {
