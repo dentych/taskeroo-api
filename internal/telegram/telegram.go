@@ -128,7 +128,11 @@ func (t *Telegram) handleUpdate(update Update) error {
 
 func (t *Telegram) handleConnect(msg Message) error {
 	connectID := uuid.NewString()
-	err := t.repo.Create(t.context, database.NewTelegram{
+	err := t.repo.DeleteAllByTelegramUserID(t.context, msg.From.ID)
+	if err != nil {
+		return err
+	}
+	err = t.repo.Create(t.context, database.NewTelegram{
 		ID:             connectID,
 		TelegramUserID: msg.From.ID,
 	})
@@ -144,4 +148,8 @@ func (t *Telegram) handleConnect(msg Message) error {
 		return err
 	}
 	return nil
+}
+
+func (t *Telegram) SendMessage(ctx context.Context, telegramUserID int, msg string) error {
+	return t.sendMessage(telegramUserID, msg)
 }
