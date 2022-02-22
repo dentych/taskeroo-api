@@ -85,7 +85,7 @@ func Run() {
 
 	controllers.NewAuthController(router, protectedRouter, authService, secureCookies)
 	controllers.NewGroupController(protectedRouter, groupRepo, userRepo)
-	controllers.NewTaskController(protectedRouter, userRepo, taskLogic)
+	controllers.NewTaskController(router, protectedRouter, userRepo, taskLogic)
 	controllers.NewNotificationController(protectedRouter, notificationLogic)
 	controllers.NewTelegramController(protectedRouter, telegramLogic)
 

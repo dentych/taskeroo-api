@@ -15,6 +15,7 @@ type TaskController struct {
 }
 
 func NewTaskController(
+	router gin.IRouter,
 	protectedRouter gin.IRouter,
 	userRepo *database.UserRepo,
 	taskLogic *app.TaskLogic,
@@ -33,7 +34,7 @@ func NewTaskController(
 
 	protectedRouter.POST("/task/:id/complete", handler.PostTaskComplete())
 
-	protectedRouter.POST("/task/debug/notify-due-today", handler.PostDebugNotifyDueToday())
+	router.POST("/task/debug/notify-due-today", handler.PostDebugNotifyDueToday())
 
 	return handler
 }
