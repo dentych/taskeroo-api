@@ -340,15 +340,17 @@ func (t *TaskLogic) NotifyTasksDueToday(ctx context.Context) error {
 			assignedTasks[*task.Assignee] = append(assignedTasks[*task.Assignee], task.Title)
 		}
 
-		msg := util.CommonTaskMessage(tasksForAll)
-		err = t.notificationLogic.NotifyAllInGroup(ctx, group.ID, msg)
-		if err != nil {
-			log.Printf("ERROR: NotifyTasksDueToday: Failed to notify all in group=%s: %s", group.ID, err)
-			// Log but continue
+		if len(tasksForAll) > 0 {
+			msg := util.CommonTaskMessage(tasksForAll)
+			err = t.notificationLogic.NotifyAllInGroup(ctx, group.ID, msg)
+			if err != nil {
+				log.Printf("ERROR: NotifyTasksDueToday: Failed to notify all in group=%s: %s", group.ID, err)
+				// Log but continue
+			}
 		}
 
 		for assignee, titles := range assignedTasks {
-			msg = util.AssignedTasksMessage(titles)
+			msg := util.AssignedTasksMessage(titles)
 			err = t.notificationLogic.SendNotification(ctx, assignee, msg)
 			if err != nil {
 				log.Printf("ERROR: NotifyTasksDueToday: Failed to notify user=%s in group=%s: %s", assignee, group.ID, err)
