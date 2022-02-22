@@ -10,11 +10,11 @@ func CommonTaskMessage(taskTitles []string) string {
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString("Fællesopgaver der skal udføres i dag:\\n")
+	buf.WriteString("Fællesopgaver der skal udføres i dag:\n")
 	for _, title := range taskTitles {
 		buf.WriteString("• ")
 		buf.WriteString(title)
-		buf.WriteString("\\n")
+		buf.WriteString("\n")
 	}
 
 	return buf.String()
@@ -26,11 +26,11 @@ func AssignedTasksMessage(taskTitles []string) string {
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString("Du har følgende tildelte opgaver, som skal udføres i dag:\\n")
+	buf.WriteString("Du har følgende tildelte opgaver, som skal udføres i dag:\n")
 	for _, title := range taskTitles {
 		buf.WriteString("• ")
 		buf.WriteString(title)
-		buf.WriteString("\\n")
+		buf.WriteString("\n")
 	}
 
 	return buf.String()
