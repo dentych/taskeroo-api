@@ -13,8 +13,9 @@ import (
 )
 
 type TaskLogic struct {
-	taskRepo *database.TaskRepo
-	userRepo *database.UserRepo
+	taskRepo          *database.TaskRepo
+	userRepo          *database.UserRepo
+	notificationLogic *NotificationLogic
 }
 
 type Task struct {
@@ -36,8 +37,12 @@ type Task struct {
 	DueDate        string
 }
 
-func NewTaskLogic(taskRepo *database.TaskRepo, userRepo *database.UserRepo) *TaskLogic {
-	return &TaskLogic{taskRepo: taskRepo, userRepo: userRepo}
+func NewTaskLogic(
+	taskRepo *database.TaskRepo,
+	userRepo *database.UserRepo,
+	notificationLogic *NotificationLogic,
+) *TaskLogic {
+	return &TaskLogic{taskRepo: taskRepo, userRepo: userRepo, notificationLogic: notificationLogic}
 }
 
 type NewTask struct {
@@ -283,6 +288,11 @@ func (t *TaskLogic) Complete(ctx context.Context, userID string, taskID string) 
 	}
 
 	err = t.taskRepo.UpdateCompleted(ctx, taskID, time.Now(), calculateNextDueDate(task.IntervalUnit, task.IntervalSize), task.Assignee)
+	if err != nil {
+		return err
+	}
+
+	err = t.notificationLogic.NotifyAllInGroup(ctx, *user.GroupID, fmt.Sprintf("%s har lige udført opgaven '%s'", user.Name, task.Title))
 	if err != nil {
 		return err
 	}

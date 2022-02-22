@@ -18,6 +18,7 @@ type NotificationLogic struct {
 	userRepo         *database.UserRepo
 	groupRepo        *database.GroupRepo
 	telegramRepo     *database.TelegramRepo
+	telegramLogic    *TelegramLogic
 }
 
 func NewNotificationLogic(
@@ -25,12 +26,14 @@ func NewNotificationLogic(
 	userRepo *database.UserRepo,
 	groupRepo *database.GroupRepo,
 	telegramRepo *database.TelegramRepo,
+	telegramLogic *TelegramLogic,
 ) *NotificationLogic {
 	return &NotificationLogic{
 		notificationRepo: notificationRepo,
 		userRepo:         userRepo,
 		groupRepo:        groupRepo,
 		telegramRepo:     telegramRepo,
+		telegramLogic:    telegramLogic,
 	}
 }
 
@@ -104,6 +107,22 @@ func (n *NotificationLogic) SendNotification(ctx context.Context, userID string,
 		body, _ := io.ReadAll(resp.Body)
 		log.Printf("Sending notification to user=%s, status code not successful: %d. Body: %s\n", userID, resp.StatusCode, string(body))
 	}
+	return nil
+}
+
+func (n *NotificationLogic) NotifyAllInGroup(ctx context.Context, groupID string, msg string) error {
+	users, err := n.userRepo.GetByGroup(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	for _, user := range users {
+		err = n.telegramLogic.SendMessage(ctx, user.ID, msg)
+		if err != nil {
+			log.Printf("Failed to send message to a member of group=%s, user=%s: %s", groupID, user.ID, err)
+		}
+	}
+
 	return nil
 }
 
