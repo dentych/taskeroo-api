@@ -370,6 +370,9 @@ func dateFormat(date time.Time) string {
 func calculateDaysLeft(date time.Time) int {
 	now := time.Now()
 	fixedUntil := date.Truncate(24 * time.Hour).Sub(now.Truncate(24 * time.Hour))
+	if fixedUntil < 0 {
+		return 0
+	}
 	return int(fixedUntil.Hours() / 24)
 }
 
