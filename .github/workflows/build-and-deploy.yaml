@@ -17,6 +17,8 @@ jobs:
           go-version: 1.17.6
       - name: Build go application
         run: go build ./...
+      - name: Test go application
+        run: go test ./...
   Deploy:
     runs-on: ubuntu-latest
     needs: [ Build ]
