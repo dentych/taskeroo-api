@@ -278,6 +278,11 @@ func (t *TaskLogic) Complete(ctx context.Context, userID string, taskID string) 
 		return internalerrors.ErrUserNotMemberOfGroup
 	}
 
+	err = t.taskRepo.UpdateCompleted(ctx, taskID, time.Now(), calculateNextDueDate(task.IntervalUnit, task.IntervalSize), task.Assignee)
+	if err != nil {
+		return err
+	}
+
 	if task.RotatingAssignee {
 		if task.Assignee == nil {
 			task.Assignee = &userID
@@ -300,9 +305,11 @@ func (t *TaskLogic) Complete(ctx context.Context, userID string, taskID string) 
 		}
 	}
 
-	err = t.taskRepo.UpdateCompleted(ctx, taskID, time.Now(), calculateNextDueDate(task.IntervalUnit, task.IntervalSize), task.Assignee)
-	if err != nil {
-		return err
+	if task.IntervalUnit == "onetime" {
+		err = t.taskRepo.Delete(ctx, task.ID)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = t.notificationLogic.NotifyAllInGroup(ctx, *user.GroupID, fmt.Sprintf("%s har lige udført opgaven '%s'", user.Name, task.Title))
