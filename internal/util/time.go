@@ -3,7 +3,7 @@ package util
 import "time"
 
 func DurationToNextNoon(now time.Time) time.Duration {
-	hour := 21
+	hour := 20
 	minute := 25
 	if now.Hour() < hour {
 		return time.Date(now.Year(), now.Month(), now.Day(), hour, minute, 0, 0, now.Location()).Sub(now)
