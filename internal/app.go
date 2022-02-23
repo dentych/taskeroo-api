@@ -73,6 +73,7 @@ func Run() {
 	authService := app.NewAuthLogic(sessionRepo, userRepo, groupRepo)
 	notificationLogic := app.NewNotificationLogic(notificationRepo, userRepo, groupRepo, telegramRepo, telegramLogic)
 	taskLogic := app.NewTaskLogic(taskRepo, userRepo, groupRepo, notificationLogic)
+	scheduler := app.NewScheduler(notificationLogic, taskLogic, groupRepo)
 
 	goviewConfig := goview.DefaultConfig
 	if os.Getenv("ENVIRONMENT") != "prod" {
@@ -89,6 +90,7 @@ func Run() {
 	controllers.NewNotificationController(protectedRouter, notificationLogic)
 	controllers.NewTelegramController(protectedRouter, telegramLogic)
 
+	scheduler.Start()
 	err = telegramClient.Start()
 	if err != nil {
 		log.Fatalf("Failed to start, because Telegram Bot could not start: %s\n", err)
