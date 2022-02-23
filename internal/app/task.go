@@ -86,6 +86,15 @@ func (t *TaskLogic) Create(ctx context.Context, userID string, newTask NewTask) 
 		return Task{}, err
 	}
 
+	var msg string
+	if task.IntervalUnit == "onetime" {
+		msg = fmt.Sprintf("%s har lige oprettet engangsopgaven '%s'!", user.Name, task.Title)
+	} else {
+		interval := t.getLocalizedInterval(task.IntervalSize, task.IntervalUnit)
+		msg = fmt.Sprintf("%s har lige oprettet opgaven '%s', med interval '%s'!", user.Name, task.Title, interval)
+	}
+	err = t.notificationLogic.NotifyAllInGroup(ctx, *user.GroupID, msg)
+
 	return Task{
 		ID:             taskID,
 		GroupID:        *user.GroupID,
@@ -366,6 +375,30 @@ func (t *TaskLogic) NotifyTasksDueToday(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (t *TaskLogic) getLocalizedInterval(size int, unit string) string {
+	switch unit {
+	case "day":
+		if size == 1 {
+			return "hver dag"
+		} else {
+			return fmt.Sprintf("hver %d dage", size)
+		}
+	case "week":
+		if size == 1 {
+			return "hver uge"
+		} else {
+			return fmt.Sprintf("hver %d. uge", size)
+		}
+	case "month":
+		if size == 1 {
+			return "hver måned"
+		} else {
+			return fmt.Sprintf("hver %d. måned", size)
+		}
+	}
+	return "ukendt interval"
 }
 
 func dateFormat(date time.Time) string {
