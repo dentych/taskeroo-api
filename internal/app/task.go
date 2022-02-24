@@ -163,7 +163,7 @@ func (t *TaskLogic) GetAllForGroup(ctx context.Context, groupID string) ([]Task,
 		})
 	}
 	sort.SliceStable(mappedTasks, func(i, j int) bool {
-		return mappedTasks[i].DaysLeft < mappedTasks[j].DaysLeft
+		return mappedTasks[i].PercentageLeft < mappedTasks[j].PercentageLeft
 	})
 
 	return mappedTasks, nil
