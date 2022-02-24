@@ -89,6 +89,7 @@ func Run() {
 	controllers.NewTaskController(router, protectedRouter, userRepo, taskLogic)
 	controllers.NewNotificationController(protectedRouter, notificationLogic)
 	controllers.NewTelegramController(protectedRouter, telegramLogic)
+	controllers.NewPWAController(router)
 
 	scheduler.Start()
 	err = telegramClient.Start()
